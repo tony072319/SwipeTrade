@@ -163,6 +163,12 @@ export default function Home() {
               Speed Round
             </Link>
           </div>
+          <Link
+            href="/challenges"
+            className="w-full rounded-2xl border border-border bg-surface-secondary/50 py-3 text-center text-sm font-bold text-text-secondary transition-all hover:bg-surface-secondary"
+          >
+            Challenge Scenarios
+          </Link>
         </div>
 
         {/* Quick stats */}
