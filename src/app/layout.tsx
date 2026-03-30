@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/layout/BottomNav";
+import ClientProviders from "@/components/layout/ClientProviders";
 
 export const metadata: Metadata = {
   title: "SwipeTrade — Chart Prediction Game",
@@ -34,8 +35,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-dvh bg-surface text-text-primary antialiased">
-        {children}
-        <BottomNav />
+        <ClientProviders>
+          {children}
+          <BottomNav />
+        </ClientProviders>
       </body>
     </html>
   );

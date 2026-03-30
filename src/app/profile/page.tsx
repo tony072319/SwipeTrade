@@ -7,8 +7,10 @@ import TradeHistory from "@/components/portfolio/TradeHistory";
 import EquityCurve from "@/components/portfolio/EquityCurve";
 import PerformanceBreakdown from "@/components/portfolio/PerformanceBreakdown";
 import AchievementsGrid from "@/components/portfolio/AchievementsGrid";
+import WinRateChart from "@/components/portfolio/WinRateChart";
+import ShareCard from "@/components/portfolio/ShareCard";
 import SignInButton from "@/components/auth/SignInButton";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useSettingsStore, ACCENT_COLORS, type AccentColor } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function ProfilePage() {
@@ -126,6 +128,9 @@ export default function ProfilePage() {
       {/* Equity curve */}
       <EquityCurve trades={trades} />
 
+      {/* Win rate trend */}
+      <WinRateChart trades={trades} />
+
       {/* Performance by asset */}
       <PerformanceBreakdown trades={trades} />
 
@@ -144,6 +149,9 @@ export default function ProfilePage() {
         </div>
         <TradeHistory trades={trades} />
       </div>
+
+      {/* Share card */}
+      <ShareCard />
 
       {/* Settings */}
       <SettingsSection />
@@ -181,7 +189,7 @@ export default function ProfilePage() {
 }
 
 function SettingsSection() {
-  const { soundEnabled, revealSpeed, setSoundEnabled, setRevealSpeed } = useSettingsStore();
+  const { soundEnabled, revealSpeed, accentColor, setSoundEnabled, setRevealSpeed, setAccentColor } = useSettingsStore();
 
   return (
     <div className="mx-4 mt-6">
@@ -227,6 +235,27 @@ function SettingsSection() {
               >
                 {s}x
               </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Accent color */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Accent Color</p>
+            <p className="text-[10px] text-text-muted">Customize app theme</p>
+          </div>
+          <div className="flex gap-1.5">
+            {(Object.keys(ACCENT_COLORS) as AccentColor[]).map((color) => (
+              <button
+                key={color}
+                onClick={() => setAccentColor(color)}
+                className={cn(
+                  "h-6 w-6 rounded-full transition-all",
+                  accentColor === color && "ring-2 ring-white ring-offset-2 ring-offset-surface-secondary",
+                )}
+                style={{ backgroundColor: ACCENT_COLORS[color] }}
+              />
             ))}
           </div>
         </div>
