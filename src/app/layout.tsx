@@ -5,15 +5,31 @@ import ClientProviders from "@/components/layout/ClientProviders";
 import InstallPrompt from "@/components/layout/InstallPrompt";
 
 export const metadata: Metadata = {
-  title: "SwipeTrade — Chart Prediction Game",
+  title: {
+    default: "SwipeTrade — Chart Prediction Game",
+    template: "%s | SwipeTrade",
+  },
   description:
-    "Practice reading charts and making split-second Long/Short calls on real historical price data.",
+    "Practice reading charts and making split-second Long/Short calls on real historical price data. Trade crypto and stocks risk-free!",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "SwipeTrade",
   },
+  openGraph: {
+    title: "SwipeTrade — Chart Prediction Game",
+    description: "Read the chart. Make the call. Swipe right for Long, left for Short. Trade with $10k — no risk!",
+    siteName: "SwipeTrade",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "SwipeTrade — Chart Prediction Game",
+    description: "Read the chart. Make the call. Trade crypto & stocks risk-free!",
+  },
+  keywords: ["trading game", "chart prediction", "crypto", "stocks", "technical analysis", "paper trading", "swipe trade"],
+  robots: "index, follow",
 };
 
 export const viewport: Viewport = {
