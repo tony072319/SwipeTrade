@@ -398,6 +398,88 @@ function TradingQuiz() {
   );
 }
 
+const GLOSSARY: { term: string; definition: string }[] = [
+  { term: "Long", definition: "A trade betting the price will go up. Buy low, sell high." },
+  { term: "Short", definition: "A trade betting the price will go down. Sell high, buy back low." },
+  { term: "Leverage", definition: "Multiplier that amplifies both gains and losses. 2x leverage means 2x the profit or 2x the loss." },
+  { term: "P&L", definition: "Profit and Loss — the net dollar amount gained or lost on a trade." },
+  { term: "Win Rate", definition: "Percentage of trades that are profitable. 60% means 6 out of 10 trades are wins." },
+  { term: "Streak", definition: "Number of consecutive winning (or losing) trades in a row." },
+  { term: "Timeframe", definition: "The time period each candlestick represents (1h = 1 hour per candle, 1D = 1 day)." },
+  { term: "OHLC", definition: "Open, High, Low, Close — the four prices that make up each candlestick." },
+  { term: "Support", definition: "A price level where buyers tend to step in, preventing further decline." },
+  { term: "Resistance", definition: "A price level where sellers tend to step in, preventing further advance." },
+  { term: "Breakout", definition: "When price moves beyond a support or resistance level with momentum." },
+  { term: "Reversal", definition: "A change in the direction of a price trend (uptrend becomes downtrend or vice versa)." },
+  { term: "EMA", definition: "Exponential Moving Average — a weighted average of recent prices that reacts faster to changes." },
+  { term: "RSI", definition: "Relative Strength Index — measures momentum from 0-100. Above 70 = overbought, below 30 = oversold." },
+  { term: "MACD", definition: "Moving Average Convergence Divergence — shows relationship between two EMAs to identify trend changes." },
+  { term: "Bollinger Bands", definition: "Three lines showing price volatility. Tight bands = low volatility, wide bands = high volatility." },
+  { term: "Drawdown", definition: "The decline from a peak to a trough in portfolio value. Measures risk." },
+  { term: "Profit Factor", definition: "Total winning trades divided by total losing trades. Above 1.0 = profitable system." },
+];
+
+function TradingGlossary() {
+  const [showGlossary, setShowGlossary] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = search
+    ? GLOSSARY.filter(
+        (g) =>
+          g.term.toLowerCase().includes(search.toLowerCase()) ||
+          g.definition.toLowerCase().includes(search.toLowerCase()),
+      )
+    : GLOSSARY;
+
+  return (
+    <div className="mx-4 mt-6">
+      <button
+        onClick={() => setShowGlossary(!showGlossary)}
+        className="flex w-full items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3"
+      >
+        <div>
+          <h2 className="text-sm font-bold">Trading Glossary</h2>
+          <p className="text-[10px] text-text-muted">{GLOSSARY.length} terms</p>
+        </div>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className={cn("text-text-muted transition-transform", showGlossary && "rotate-180")}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {showGlossary && (
+        <div className="mt-2 animate-fade-in">
+          <input
+            type="text"
+            placeholder="Search terms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-text-primary placeholder-text-muted outline-none focus:border-accent"
+          />
+          <div className="mt-2 space-y-1.5 max-h-80 overflow-y-auto">
+            {filtered.map((g) => (
+              <div key={g.term} className="rounded-lg bg-surface-secondary px-3 py-2">
+                <p className="text-xs font-bold text-accent">{g.term}</p>
+                <p className="text-[10px] text-text-secondary leading-relaxed mt-0.5">{g.definition}</p>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-xs text-text-muted text-center py-4">No matching terms</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LearnPage() {
   const [category, setCategory] = useState<Category>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -489,6 +571,9 @@ export default function LearnPage() {
 
       {/* Trading Quiz */}
       <TradingQuiz />
+
+      {/* Glossary */}
+      <TradingGlossary />
 
       {/* CTA */}
       <div className="px-4 mt-6 text-center">

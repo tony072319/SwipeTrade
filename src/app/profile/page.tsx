@@ -13,6 +13,7 @@ import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
+import RiskMetrics from "@/components/portfolio/RiskMetrics";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -176,6 +177,9 @@ export default function ProfilePage() {
 
       {/* Win rate trend */}
       <WinRateChart trades={trades} />
+
+      {/* Risk metrics */}
+      <RiskMetrics trades={trades} />
 
       {/* P&L distribution */}
       <PnlDistribution trades={trades} />
