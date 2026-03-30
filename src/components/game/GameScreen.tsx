@@ -422,6 +422,32 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               />
               <ConfidenceRating value={confidence} onRate={setConfidence} />
             </div>
+            {/* Position info — real trading terminal feel */}
+            {chart && (
+              <div className="flex items-center justify-between rounded-lg bg-surface-tertiary/50 border border-border/50 px-3 py-1.5">
+                <div className="flex items-center gap-3 text-[10px] text-text-muted">
+                  <span className="font-mono">
+                    <span className="text-text-secondary font-bold">{chart.asset.symbol}</span>
+                    {" "}@ ${chart.visibleCandles[chart.visibleCandles.length - 1].close >= 100
+                      ? chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(2)
+                      : chart.visibleCandles[chart.visibleCandles.length - 1].close >= 1
+                        ? chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(2)
+                        : chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(4)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px]">
+                  <span className="text-text-muted">Position:</span>
+                  <span className="font-mono font-bold text-accent">
+                    ${Math.round(balance * (betFraction || 0.1)).toLocaleString()}
+                  </span>
+                  {leverage > 1 && (
+                    <span className="font-mono text-text-muted">
+                      ({leverage}x = ${Math.round(balance * (betFraction || 0.1) * leverage).toLocaleString()})
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}

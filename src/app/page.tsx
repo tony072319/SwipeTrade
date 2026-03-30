@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Watchlist from "@/components/home/Watchlist";
 
 export const metadata: Metadata = {
   title: "SwipeTrade — Chart Prediction Trading Game",
@@ -182,12 +183,12 @@ export default function Home() {
             <p className="text-[10px] text-text-muted">Timeframes</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-black text-text-primary">25+</p>
-            <p className="text-[10px] text-text-muted">Achievements</p>
+            <p className="text-lg font-black text-text-primary">9</p>
+            <p className="text-[10px] text-text-muted">Indicators</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-black text-text-primary">10</p>
-            <p className="text-[10px] text-text-muted">Lessons</p>
+            <p className="text-lg font-black text-text-primary">12</p>
+            <p className="text-[10px] text-text-muted">Challenges</p>
           </div>
         </div>
       </div>
@@ -265,6 +266,9 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* Watchlist */}
+      <Watchlist />
 
       {/* Learn section */}
       <div className="border-t border-border px-6 py-8">

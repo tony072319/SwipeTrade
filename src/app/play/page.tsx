@@ -16,6 +16,7 @@ import PortfolioMilestone from "@/components/game/PortfolioMilestone";
 import MiniRecap from "@/components/game/MiniRecap";
 import DailyGoal from "@/components/game/DailyGoal";
 import SessionTimer from "@/components/game/SessionTimer";
+import PriceTicker from "@/components/layout/PriceTicker";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -163,6 +164,9 @@ export default function PlayPage() {
         flash={flash}
         onBalanceTap={() => setQuickStatsOpen(true)}
       />
+
+      {/* Price ticker */}
+      <PriceTicker />
 
       {/* Motivational message */}
       <MotivationalMessage />

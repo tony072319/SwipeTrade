@@ -65,17 +65,37 @@ export default function ChartOverlay({
       const high = Math.max(...candles.map((c) => c.high));
       const low = Math.min(...candles.map((c) => c.low));
       const current = candles[candles.length - 1].close;
-      const formatPrice = (p: number) => p >= 100 ? p.toFixed(0) : p >= 1 ? p.toFixed(2) : p.toFixed(4);
+      const formatPrice = (p: number) => p >= 10000 ? p.toFixed(0) : p >= 100 ? p.toFixed(2) : p >= 1 ? p.toFixed(2) : p.toFixed(4);
+
+      // Simulate bid/ask spread (0.02-0.1% of price)
+      const spreadPct = 0.0002 + Math.random() * 0.0008;
+      const halfSpread = current * spreadPct / 2;
+      const bid = current - halfSpread;
+      const ask = current + halfSpread;
+
       return (
         <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-0.5">
           <span className="rounded-md bg-profit/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-profit border border-profit/10">
             H {formatPrice(high)}
           </span>
+          {/* Bid/Ask spread */}
+          <div className="flex items-center gap-0.5">
+            <span className="rounded-l-md bg-profit/10 px-1 py-0.5 text-[8px] font-mono tabular-nums text-profit border border-profit/10">
+              B {formatPrice(bid)}
+            </span>
+            <span className="rounded-r-md bg-loss/10 px-1 py-0.5 text-[8px] font-mono tabular-nums text-loss border border-loss/10">
+              A {formatPrice(ask)}
+            </span>
+          </div>
           <span className="rounded-md bg-surface-secondary/80 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-text-secondary border border-glass-border">
             C {formatPrice(current)}
           </span>
           <span className="rounded-md bg-loss/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-loss border border-loss/10">
             L {formatPrice(low)}
+          </span>
+          {/* Candle count */}
+          <span className="mt-1 rounded-md bg-surface-secondary/60 px-1.5 py-0.5 text-[8px] font-mono text-text-muted/60 border border-glass-border">
+            {candles.length} candles
           </span>
         </div>
       );
