@@ -43,6 +43,30 @@ async function fetchCandles(
   return fetchYahooOHLCV(asset.symbol, timeframe);
 }
 
+// Validate candle quality — reject windows with flat/suspicious data
+function validateWindow(candles: Candle[]): boolean {
+  if (candles.length === 0) return false;
+
+  // Check that prices are reasonable (no zeros, no NaN)
+  for (const c of candles) {
+    if (!c.open || !c.high || !c.low || !c.close) return false;
+    if (c.high < c.low) return false;
+    if (c.open <= 0 || c.close <= 0) return false;
+  }
+
+  // Check that there's meaningful price movement (not all identical)
+  const closes = candles.map((c) => c.close);
+  const uniqueCloses = new Set(closes);
+  if (uniqueCloses.size < Math.min(5, candles.length / 2)) return false;
+
+  // Check max move isn't insane (>500% in window = probably bad data)
+  const minPrice = Math.min(...closes);
+  const maxPrice = Math.max(...closes);
+  if (minPrice > 0 && maxPrice / minPrice > 6) return false;
+
+  return true;
+}
+
 function buildChartData(
   asset: Asset,
   timeframe: TimeFrame,
@@ -60,11 +84,26 @@ function buildChartData(
     );
   }
 
-  // Pick a random window, avoiding the very end (might be incomplete candle)
+  // Try up to 5 random windows, pick the first that passes validation
   const safeEnd = Math.max(candles.length - 2, totalNeeded);
   const maxStart = safeEnd - totalNeeded;
-  const startIndex = Math.floor(Math.random() * (maxStart + 1));
 
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const startIndex = Math.floor(Math.random() * (maxStart + 1));
+    const window = candles.slice(startIndex, startIndex + totalNeeded);
+
+    if (validateWindow(window)) {
+      return {
+        asset,
+        timeframe,
+        visibleCandles: window.slice(0, visible),
+        hiddenCandles: window.slice(visible, visible + hidden),
+      };
+    }
+  }
+
+  // Fallback: just use first valid-looking window
+  const startIndex = Math.floor(Math.random() * (maxStart + 1));
   return {
     asset,
     timeframe,
