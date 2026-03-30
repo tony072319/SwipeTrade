@@ -12,6 +12,7 @@ import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
 import TradeResult from "@/components/game/TradeResult";
 import type { Direction } from "@/types/trade";
+import CountdownTimer from "@/components/daily/CountdownTimer";
 
 // Deterministic seed-based asset selection for daily challenge
 const DAILY_ASSETS = [
@@ -243,8 +244,9 @@ export default function DailyPage() {
           </div>
         )}
 
-        <div className="mx-4 mt-6 text-center">
-          <p className="text-xs text-text-muted">Come back tomorrow for a new challenge!</p>
+        <div className="mx-4 mt-6 flex flex-col items-center gap-2">
+          <CountdownTimer />
+          <p className="text-[10px] text-text-muted">New challenge drops at midnight</p>
         </div>
       </main>
     );

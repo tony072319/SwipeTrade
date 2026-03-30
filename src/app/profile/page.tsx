@@ -9,6 +9,7 @@ import PerformanceBreakdown from "@/components/portfolio/PerformanceBreakdown";
 import AchievementsGrid from "@/components/portfolio/AchievementsGrid";
 import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
+import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, type AccentColor } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -130,6 +131,9 @@ export default function ProfilePage() {
 
       {/* Win rate trend */}
       <WinRateChart trades={trades} />
+
+      {/* P&L distribution */}
+      <PnlDistribution trades={trades} />
 
       {/* Performance by asset */}
       <PerformanceBreakdown trades={trades} />
