@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/layout/BottomNav";
 import ClientProviders from "@/components/layout/ClientProviders";
+import InstallPrompt from "@/components/layout/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "SwipeTrade — Chart Prediction Game",
@@ -38,6 +39,7 @@ export default function RootLayout({
         <ClientProviders>
           {children}
           <BottomNav />
+          <InstallPrompt />
         </ClientProviders>
       </body>
     </html>
