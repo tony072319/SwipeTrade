@@ -1,5 +1,5 @@
-const CACHE_NAME = "swipetrade-v1";
-const STATIC_ASSETS = ["/", "/play", "/daily", "/profile", "/learn"];
+const CACHE_NAME = "swipetrade-v2";
+const STATIC_ASSETS = ["/", "/play", "/daily", "/profile", "/learn", "/speed", "/challenges", "/leaderboard"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -5,6 +5,7 @@ import ClientProviders from "@/components/layout/ClientProviders";
 import InstallPrompt from "@/components/layout/InstallPrompt";
 import WhatsNew from "@/components/layout/WhatsNew";
 import LandscapeWarning from "@/components/layout/LandscapeWarning";
+import OfflineIndicator from "@/components/layout/OfflineIndicator";
 
 export const metadata: Metadata = {
   title: {
@@ -60,6 +61,7 @@ export default function RootLayout({
           <InstallPrompt />
           <WhatsNew />
           <LandscapeWarning />
+          <OfflineIndicator />
         </ClientProviders>
       </body>
     </html>

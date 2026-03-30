@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import DailyTip from "@/components/game/DailyTip";
 
 interface Lesson {
   id: string;
@@ -495,6 +496,11 @@ export default function LearnPage() {
         <p className="mt-0.5 text-xs text-text-muted">
           Master chart reading and technical analysis
         </p>
+      </div>
+
+      {/* Daily trading tip */}
+      <div className="px-4 pt-4">
+        <DailyTip />
       </div>
 
       {/* Category filter */}
