@@ -168,7 +168,7 @@ export default function Home() {
         {/* Quick stats */}
         <div className="mt-8 flex gap-6">
           <div className="text-center">
-            <p className="text-lg font-black text-text-primary">100+</p>
+            <p className="text-lg font-black text-text-primary">30</p>
             <p className="text-[10px] text-text-muted">Assets</p>
           </div>
           <div className="text-center">
@@ -178,6 +178,10 @@ export default function Home() {
           <div className="text-center">
             <p className="text-lg font-black text-text-primary">25+</p>
             <p className="text-[10px] text-text-muted">Achievements</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-black text-text-primary">10</p>
+            <p className="text-[10px] text-text-muted">Lessons</p>
           </div>
         </div>
       </div>
@@ -253,6 +257,40 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Learn section */}
+      <div className="border-t border-border px-6 py-8">
+        <h2 className="text-center text-lg font-bold mb-2">Learn As You Trade</h2>
+        <p className="text-center text-xs text-text-muted mb-4">
+          10 lessons + quiz to master technical analysis
+        </p>
+        <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
+          {[
+            { icon: "📊", title: "Candlesticks", desc: "Read OHLC patterns" },
+            { icon: "📈", title: "Trends", desc: "Identify direction" },
+            { icon: "🎯", title: "Indicators", desc: "EMA, RSI, MACD" },
+            { icon: "🧠", title: "Psychology", desc: "Control emotions" },
+          ].map((l) => (
+            <Link
+              key={l.title}
+              href="/learn"
+              className="rounded-xl border border-border bg-surface-secondary/50 p-3 transition-colors hover:bg-surface-secondary"
+            >
+              <span className="text-lg">{l.icon}</span>
+              <p className="text-xs font-bold mt-1">{l.title}</p>
+              <p className="text-[10px] text-text-muted">{l.desc}</p>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-4 text-center">
+          <Link
+            href="/learn"
+            className="inline-block rounded-xl border border-accent/30 bg-accent/10 px-6 py-2.5 text-sm font-bold text-accent transition-all hover:bg-accent/20"
+          >
+            Start Learning
+          </Link>
         </div>
       </div>
 

@@ -310,11 +310,12 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               asset={chart.asset}
               timeframe={chart.timeframe}
               onAssetClick={() => setAssetPickerOpen(true)}
+              candles={phase === "viewing" ? chart.visibleCandles : undefined}
             />
 
             {/* Timeframe picker below overlay */}
             {phase === "viewing" && (
-              <div className="absolute left-3 top-11 z-10">
+              <div className="absolute left-3 top-[3.75rem] z-10">
                 <TimeframePicker
                   value={hydrated ? selectedTimeframe : null}
                   onChange={handleTimeframeChange}
