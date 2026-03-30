@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import GameScreen from "@/components/game/GameScreen";
 import PortfolioBar from "@/components/portfolio/PortfolioBar";
 import TutorialOverlay from "@/components/game/TutorialOverlay";
@@ -8,6 +8,8 @@ import AchievementToast from "@/components/game/AchievementToast";
 import Confetti from "@/components/game/Confetti";
 import KeyboardHelp from "@/components/game/KeyboardHelp";
 import TradingTip from "@/components/game/TradingTip";
+import StreakMilestone from "@/components/game/StreakMilestone";
+import QuickStats from "@/components/portfolio/QuickStats";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -28,6 +30,8 @@ export default function PlayPage() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiIntensity, setConfettiIntensity] = useState<"low" | "medium" | "high">("medium");
+  const [quickStatsOpen, setQuickStatsOpen] = useState(false);
+  const prevStreakRef = useRef(currentStreak);
 
   const winRate = totalTrades > 0 ? winningTrades / totalTrades : 0;
   const currentBalance = hydrated ? balance : STARTING_BALANCE;
@@ -106,6 +110,11 @@ export default function PlayPage() {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
+
+      // Update previous streak ref after a short delay (after store updates)
+      setTimeout(() => {
+        prevStreakRef.current = usePortfolioStore.getState().currentStreak;
+      }, 200);
     },
     [chart, direction, leverage, currentBalance, recordTrade, user, addUnlocked],
   );
@@ -121,8 +130,14 @@ export default function PlayPage() {
       {/* Confetti for big wins */}
       <Confetti active={showConfetti} intensity={confettiIntensity} />
 
+      {/* Streak milestone celebrations */}
+      <StreakMilestone streak={currentStreak} previousStreak={prevStreakRef.current} />
+
       {/* Keyboard shortcuts help */}
       <KeyboardHelp />
+
+      {/* Quick stats popup */}
+      <QuickStats open={quickStatsOpen} onClose={() => setQuickStatsOpen(false)} />
 
       {/* Portfolio header */}
       <PortfolioBar
@@ -131,6 +146,7 @@ export default function PlayPage() {
         winRate={hydrated ? winRate : 0}
         streak={hydrated ? currentStreak : 0}
         flash={flash}
+        onBalanceTap={() => setQuickStatsOpen(true)}
       />
 
       {/* Game area */}

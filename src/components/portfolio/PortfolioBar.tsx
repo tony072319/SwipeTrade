@@ -9,6 +9,7 @@ interface PortfolioBarProps {
   winRate: number;
   streak?: number;
   flash?: "profit" | "loss" | null;
+  onBalanceTap?: () => void;
 }
 
 export default function PortfolioBar({
@@ -17,6 +18,7 @@ export default function PortfolioBar({
   winRate,
   streak = 0,
   flash,
+  onBalanceTap,
 }: PortfolioBarProps) {
   return (
     <div className="flex shrink-0 items-center justify-between border-b border-border bg-surface-secondary/50 px-4 py-3">
@@ -31,7 +33,7 @@ export default function PortfolioBar({
           <div className="flex flex-col items-end">
             <span className="text-[9px] uppercase tracking-wider text-text-muted">Streak</span>
             <span className="text-xs font-bold tabular-nums text-profit">
-              {streak >= 3 ? "🔥" : ""}{streak}
+              {streak >= 3 ? "\uD83D\uDD25" : ""}{streak}
             </span>
           </div>
         )}
@@ -58,8 +60,11 @@ export default function PortfolioBar({
           </span>
         </div>
 
-        {/* Balance */}
-        <div className="flex flex-col items-end">
+        {/* Balance - tappable */}
+        <button
+          onClick={onBalanceTap}
+          className="flex flex-col items-end"
+        >
           <span className="text-[9px] uppercase tracking-wider text-text-muted">Balance</span>
           <span
             className={cn(
@@ -71,7 +76,7 @@ export default function PortfolioBar({
           >
             {formatCurrency(balance)}
           </span>
-        </div>
+        </button>
       </div>
     </div>
   );

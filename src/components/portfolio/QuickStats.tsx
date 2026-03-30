@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useHydration } from "@/hooks/useHydration";
 import { formatCurrency, cn } from "@/lib/utils";
 
-export default function QuickStats() {
+interface QuickStatsProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export default function QuickStats({ open, onClose }: QuickStatsProps) {
   const hydrated = useHydration();
-  const [open, setOpen] = useState(false);
   const { balance, totalTrades, winningTrades, totalPnl, currentStreak, bestStreak, bestTrade, trades } =
     usePortfolioStore();
 
@@ -23,7 +26,7 @@ export default function QuickStats() {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/40 backdrop-blur-sm animate-fade-in"
-      onClick={() => setOpen(false)}
+      onClick={onClose}
     >
       <div
         className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-surface-secondary p-5 shadow-2xl animate-scale-in"
@@ -77,9 +80,4 @@ export default function QuickStats() {
       </div>
     </div>
   );
-}
-
-export function useQuickStats() {
-  const [open, setOpen] = useState(false);
-  return { open, toggle: () => setOpen((o) => !o) };
 }

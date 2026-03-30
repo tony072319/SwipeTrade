@@ -23,6 +23,7 @@ export default function SwipeHandler({
   });
 
   const opacity = Math.min(Math.abs(deltaX) / 100, 1);
+  const progress = Math.min(Math.abs(deltaX) / 60, 1); // 0-1 progress toward threshold
 
   return (
     <div ref={ref} className="relative h-full w-full select-none">
@@ -52,30 +53,57 @@ export default function SwipeHandler({
                 ? "bg-profit/15 border border-profit/30"
                 : "bg-loss/15 border border-loss/30",
             )}
+            style={{ transform: `scale(${0.8 + progress * 0.2})` }}
           >
-            <span
-              className={cn(
-                "text-4xl font-black tracking-widest",
-                direction === "long" ? "text-profit" : "text-loss",
+            <div className="flex items-center gap-3">
+              {direction === "short" && (
+                <svg width="24" height="24" viewBox="0 0 24 24" className="text-loss">
+                  <path d="M19 12H5M5 12l6-6M5 12l6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               )}
-            >
-              {direction === "long" ? "LONG" : "SHORT"}
-            </span>
+              <span
+                className={cn(
+                  "text-4xl font-black tracking-widest",
+                  direction === "long" ? "text-profit" : "text-loss",
+                )}
+              >
+                {direction === "long" ? "LONG" : "SHORT"}
+              </span>
+              {direction === "long" && (
+                <svg width="24" height="24" viewBox="0 0 24 24" className="text-profit">
+                  <path d="M5 12h14M19 12l-6-6M19 12l-6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Edge glow lines */}
+      {/* Swipe progress indicator at edges */}
       {swiping && deltaX !== 0 && (
-        <div
-          className="pointer-events-none absolute inset-y-0 z-10 w-0.5"
-          style={{
-            [deltaX > 0 ? "right" : "left"]: 0,
-            opacity: opacity * 0.8,
-            backgroundColor: deltaX > 0 ? "#00dc82" : "#ff4757",
-            boxShadow: `0 0 30px 5px ${deltaX > 0 ? "#00dc8260" : "#ff475760"}`,
-          }}
-        />
+        <>
+          {/* Edge glow line */}
+          <div
+            className="pointer-events-none absolute inset-y-0 z-10 w-0.5"
+            style={{
+              [deltaX > 0 ? "right" : "left"]: 0,
+              opacity: opacity * 0.8,
+              backgroundColor: deltaX > 0 ? "#00dc82" : "#ff4757",
+              boxShadow: `0 0 30px 5px ${deltaX > 0 ? "#00dc8260" : "#ff475760"}`,
+            }}
+          />
+
+          {/* Corner indicators */}
+          <div
+            className={cn(
+              "pointer-events-none absolute top-3 z-10 rounded-full px-2 py-0.5 text-[9px] font-bold",
+              deltaX > 0 ? "right-3 bg-profit/20 text-profit" : "left-3 bg-loss/20 text-loss",
+            )}
+            style={{ opacity }}
+          >
+            {deltaX > 0 ? "LONG" : "SHORT"}
+          </div>
+        </>
       )}
     </div>
   );
