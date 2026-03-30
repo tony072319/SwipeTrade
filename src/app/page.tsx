@@ -143,12 +143,20 @@ export default function Home() {
           >
             Start Trading
           </Link>
-          <Link
-            href="/daily"
-            className="rounded-2xl border border-border bg-surface-secondary py-3.5 text-center text-sm font-bold text-text-secondary transition-all hover:bg-surface-tertiary"
-          >
-            Daily Challenge
-          </Link>
+          <div className="flex gap-2 w-full">
+            <Link
+              href="/daily"
+              className="flex-1 rounded-2xl border border-border bg-surface-secondary py-3.5 text-center text-sm font-bold text-text-secondary transition-all hover:bg-surface-tertiary"
+            >
+              Daily
+            </Link>
+            <Link
+              href="/speed"
+              className="flex-1 rounded-2xl border border-accent/30 bg-accent/10 py-3.5 text-center text-sm font-bold text-accent transition-all hover:bg-accent/20"
+            >
+              Speed Round
+            </Link>
+          </div>
         </div>
 
         {/* Quick stats */}
