@@ -12,6 +12,7 @@ import StreakMilestone from "@/components/game/StreakMilestone";
 import QuickStats from "@/components/portfolio/QuickStats";
 import SessionSummary from "@/components/game/SessionSummary";
 import MotivationalMessage from "@/components/game/MotivationalMessage";
+import PortfolioMilestone from "@/components/game/PortfolioMilestone";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -137,6 +138,9 @@ export default function PlayPage() {
 
       {/* Session summary for returning users */}
       <SessionSummary />
+
+      {/* Portfolio milestone celebrations */}
+      <PortfolioMilestone />
 
       {/* Keyboard shortcuts help */}
       <KeyboardHelp />
