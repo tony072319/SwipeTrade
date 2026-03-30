@@ -66,6 +66,7 @@ export default function ChartReveal({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const revealIndexRef = useRef(0);
   const [revealedCount, setRevealedCount] = useState(0);
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
   // Track overlay indicator series
   const overlaySeriesRef = useRef<Map<string, ISeriesApi<"Line">>>(new Map());
@@ -559,6 +560,7 @@ export default function ChartReveal({
 
       revealIndexRef.current++;
       setRevealedCount(revealIndexRef.current);
+      setCurrentPrice(candle.close);
     }, CANDLE_REVEAL_INTERVAL_MS / revealSpeed);
 
     return () => {
@@ -596,8 +598,17 @@ export default function ChartReveal({
       )}
       {revealing && (
         <>
-          <div className="absolute bottom-3 right-3 z-10 rounded-lg bg-black/50 px-2.5 py-1 text-xs font-medium text-white/70 backdrop-blur-sm">
-            {revealedCount}/{hiddenCandles.length}
+          <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
+            {currentPrice !== null && entryPrice && (
+              <span className={`rounded-lg px-2 py-1 text-xs font-bold tabular-nums backdrop-blur-sm ${
+                currentPrice >= entryPrice ? "bg-profit/20 text-profit" : "bg-loss/20 text-loss"
+              }`}>
+                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            )}
+            <span className="rounded-lg bg-black/50 px-2.5 py-1 text-xs font-medium text-white/70 backdrop-blur-sm">
+              {revealedCount}/{hiddenCandles.length}
+            </span>
           </div>
           <button
             onClick={handleSkip}

@@ -377,12 +377,14 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 className="flex-1 rounded-xl border border-loss/20 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.98]"
               >
                 ← SHORT
+                <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[S]</span>
               </button>
               <button
                 onClick={() => handleSwipe("long")}
                 className="flex-1 rounded-xl border border-profit/20 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.98]"
               >
                 LONG →
+                <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[L]</span>
               </button>
             </div>
           </div>
