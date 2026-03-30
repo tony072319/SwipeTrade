@@ -5,7 +5,7 @@ import type { TradeResult as TradeResultType } from "@/types/trade";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
-import { playWinSound, playLossSound } from "@/lib/sounds";
+import { playWinSound, playLossSound, playBigWinSound, playStreakSound } from "@/lib/sounds";
 
 interface TradeResultProps {
   result: TradeResultType;
@@ -54,8 +54,13 @@ export default function TradeResult({
     if (hapticEnabled && navigator.vibrate) {
       navigator.vibrate(result.isWin ? [50, 30, 50] : [100]);
     }
-    if (result.isWin) playWinSound();
-    else playLossSound();
+    if (result.isWin) {
+      // Play different sounds based on win magnitude
+      if (result.pnlPercent > 5) playBigWinSound();
+      else playWinSound();
+    } else {
+      playLossSound();
+    }
     return () => clearTimeout(t);
   }, [result.isWin, hapticEnabled]);
 
@@ -79,6 +84,14 @@ export default function TradeResult({
 
     return () => clearInterval(interval);
   }, [result.pnl]);
+
+  // Play streak sound for milestone streaks
+  useEffect(() => {
+    if (result.isWin && (currentStreak === 3 || currentStreak === 5 || currentStreak === 7 || currentStreak === 10)) {
+      const t = setTimeout(() => playStreakSound(), 400);
+      return () => clearTimeout(t);
+    }
+  }, [result.isWin, currentStreak]);
 
   const streakMessage = result.isWin ? getStreakMessage(currentStreak) : null;
   const showBigConfetti = result.isWin && currentStreak >= 5;

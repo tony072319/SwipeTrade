@@ -83,6 +83,47 @@ export function playSwipeSound() {
   osc.stop(ctx.currentTime + 0.1);
 }
 
+export function playBigWinSound() {
+  const ctx = getContext();
+  if (!ctx) return;
+
+  // Triumphant ascending arpeggio C-E-G-C
+  const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.1;
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.35);
+  });
+}
+
+export function playStreakSound() {
+  const ctx = getContext();
+  if (!ctx) return;
+
+  // Quick shimmering sound for streak milestones
+  for (let i = 0; i < 3; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = 880 + i * 220;
+    const t = ctx.currentTime + i * 0.06;
+    gain.gain.setValueAtTime(0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  }
+}
+
 export function playRevealTickSound() {
   const ctx = getContext();
   if (!ctx) return;
