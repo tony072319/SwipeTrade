@@ -7,6 +7,7 @@ import TutorialOverlay from "@/components/game/TutorialOverlay";
 import AchievementToast from "@/components/game/AchievementToast";
 import Confetti from "@/components/game/Confetti";
 import KeyboardHelp from "@/components/game/KeyboardHelp";
+import TradingTip from "@/components/game/TradingTip";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -132,8 +133,9 @@ export default function PlayPage() {
       />
 
       {/* Game area */}
-      <div className="min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1">
         <GameScreen balance={currentBalance} onTrade={handleTrade} />
+        <TradingTip />
       </div>
     </main>
   );

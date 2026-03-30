@@ -11,6 +11,11 @@ export const CRYPTO_ASSETS: Asset[] = [
   { symbol: "AVAX", name: "Avalanche", type: "crypto", coingeckoId: "avalanche-2" },
   { symbol: "DOT", name: "Polkadot", type: "crypto", coingeckoId: "polkadot" },
   { symbol: "MATIC", name: "Polygon", type: "crypto", coingeckoId: "matic-network" },
+  { symbol: "LINK", name: "Chainlink", type: "crypto", coingeckoId: "chainlink" },
+  { symbol: "UNI", name: "Uniswap", type: "crypto", coingeckoId: "uniswap" },
+  { symbol: "ATOM", name: "Cosmos", type: "crypto", coingeckoId: "cosmos" },
+  { symbol: "LTC", name: "Litecoin", type: "crypto", coingeckoId: "litecoin" },
+  { symbol: "NEAR", name: "NEAR", type: "crypto", coingeckoId: "near" },
 ];
 
 export const STOCK_ASSETS: Asset[] = [
@@ -24,6 +29,11 @@ export const STOCK_ASSETS: Asset[] = [
   { symbol: "SPY", name: "S&P 500 ETF", type: "stock" },
   { symbol: "QQQ", name: "Nasdaq 100 ETF", type: "stock" },
   { symbol: "AMD", name: "AMD", type: "stock" },
+  { symbol: "NFLX", name: "Netflix", type: "stock" },
+  { symbol: "DIS", name: "Disney", type: "stock" },
+  { symbol: "JPM", name: "JPMorgan", type: "stock" },
+  { symbol: "V", name: "Visa", type: "stock" },
+  { symbol: "BA", name: "Boeing", type: "stock" },
 ];
 
 export const ALL_ASSETS: Asset[] = [...CRYPTO_ASSETS, ...STOCK_ASSETS];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Asset } from "@/types/chart";
 import { CRYPTO_ASSETS, STOCK_ASSETS } from "@/lib/data/assets";
 import { cn } from "@/lib/utils";
@@ -19,10 +19,21 @@ export default function AssetPicker({
   selectedAsset,
 }: AssetPickerProps) {
   const [tab, setTab] = useState<"crypto" | "stocks">("crypto");
+  const [search, setSearch] = useState("");
+
+  const baseAssets = tab === "crypto" ? CRYPTO_ASSETS : STOCK_ASSETS;
+
+  const assets = useMemo(() => {
+    if (!search.trim()) return baseAssets;
+    const q = search.toLowerCase();
+    return baseAssets.filter(
+      (a) =>
+        a.symbol.toLowerCase().includes(q) ||
+        a.name.toLowerCase().includes(q),
+    );
+  }, [baseAssets, search]);
 
   if (!open) return null;
-
-  const assets = tab === "crypto" ? CRYPTO_ASSETS : STOCK_ASSETS;
 
   return (
     <>
@@ -40,9 +51,21 @@ export default function AssetPicker({
           <h2 className="text-lg font-bold">Choose Asset</h2>
         </div>
 
+        {/* Search */}
+        <div className="px-4 pb-3">
+          <input
+            type="text"
+            placeholder="Search assets..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl border border-border bg-surface-tertiary px-4 py-2.5 text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
+            autoFocus
+          />
+        </div>
+
         {/* Random option */}
         <button
-          onClick={() => { onSelect(null); onClose(); }}
+          onClick={() => { onSelect(null); onClose(); setSearch(""); }}
           className={cn(
             "mx-4 mb-3 w-[calc(100%-2rem)] rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all",
             !selectedAsset
@@ -56,7 +79,7 @@ export default function AssetPicker({
         {/* Tabs */}
         <div className="flex gap-1 px-4 pb-3">
           <button
-            onClick={() => setTab("crypto")}
+            onClick={() => { setTab("crypto"); setSearch(""); }}
             className={cn(
               "flex-1 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all",
               tab === "crypto"
@@ -64,10 +87,10 @@ export default function AssetPicker({
                 : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
             )}
           >
-            Crypto
+            Crypto ({CRYPTO_ASSETS.length})
           </button>
           <button
-            onClick={() => setTab("stocks")}
+            onClick={() => { setTab("stocks"); setSearch(""); }}
             className={cn(
               "flex-1 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all",
               tab === "stocks"
@@ -75,37 +98,43 @@ export default function AssetPicker({
                 : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
             )}
           >
-            Stocks
+            Stocks ({STOCK_ASSETS.length})
           </button>
         </div>
 
         {/* Asset grid */}
         <div className="grid grid-cols-2 gap-2 px-4 pb-6 max-h-60 overflow-y-auto">
-          {assets.map((asset) => {
-            const isSelected = selectedAsset?.symbol === asset.symbol;
-            return (
-              <button
-                key={asset.symbol}
-                onClick={() => { onSelect(asset); onClose(); }}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all",
-                  isSelected
-                    ? "border-accent/30 bg-accent-bg"
-                    : "border-border bg-surface-tertiary hover:border-border-light",
-                )}
-              >
-                <div className="flex flex-col">
-                  <span className={cn(
-                    "text-sm font-bold",
-                    isSelected ? "text-accent" : "text-text-primary",
-                  )}>
-                    {asset.symbol}
-                  </span>
-                  <span className="text-[10px] text-text-muted">{asset.name}</span>
-                </div>
-              </button>
-            );
-          })}
+          {assets.length === 0 ? (
+            <div className="col-span-2 py-6 text-center text-xs text-text-muted">
+              No assets match &ldquo;{search}&rdquo;
+            </div>
+          ) : (
+            assets.map((asset) => {
+              const isSelected = selectedAsset?.symbol === asset.symbol;
+              return (
+                <button
+                  key={asset.symbol}
+                  onClick={() => { onSelect(asset); onClose(); setSearch(""); }}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all",
+                    isSelected
+                      ? "border-accent/30 bg-accent-bg"
+                      : "border-border bg-surface-tertiary hover:border-border-light",
+                  )}
+                >
+                  <div className="flex flex-col">
+                    <span className={cn(
+                      "text-sm font-bold",
+                      isSelected ? "text-accent" : "text-text-primary",
+                    )}>
+                      {asset.symbol}
+                    </span>
+                    <span className="text-[10px] text-text-muted">{asset.name}</span>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
     </>
