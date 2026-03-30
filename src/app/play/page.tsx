@@ -13,6 +13,7 @@ import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/game-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { STARTING_BALANCE } from "@/lib/game/constants";
 import { checkAchievements } from "@/lib/achievements";
 
@@ -57,7 +58,7 @@ export default function PlayPage() {
         leverage,
         entryPrice: chart.visibleCandles[chart.visibleCandles.length - 1].close,
         exitPrice: chart.hiddenCandles[chart.hiddenCandles.length - 1].close,
-        betAmount: Math.round(currentBalance * 0.1 * 100) / 100,
+        betAmount: Math.round(currentBalance * (useSettingsStore.getState().betFraction || 0.1) * 100) / 100,
         pnl,
         isDailyChallenge: false,
       };

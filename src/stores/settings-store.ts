@@ -34,6 +34,7 @@ interface SettingsStore {
   soundEnabled: boolean;
   accentColor: AccentColor;
   difficulty: Difficulty;
+  betFraction: number;
   recentAssets: string[]; // symbol list, most recent first
   favoriteAssets: string[]; // symbol list
 
@@ -45,6 +46,7 @@ interface SettingsStore {
   setSoundEnabled: (enabled: boolean) => void;
   setAccentColor: (color: AccentColor) => void;
   setDifficulty: (d: Difficulty) => void;
+  setBetFraction: (f: number) => void;
   addRecentAsset: (symbol: string) => void;
   toggleFavorite: (symbol: string) => void;
 }
@@ -60,6 +62,7 @@ export const useSettingsStore = create<SettingsStore>()(
       soundEnabled: true,
       accentColor: "indigo",
       difficulty: "normal",
+      betFraction: 0.1,
       recentAssets: [],
       favoriteAssets: [],
 
@@ -76,6 +79,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setAccentColor: (color) => set({ accentColor: color }),
       setDifficulty: (d) => set({ difficulty: d }),
+      setBetFraction: (f) => set({ betFraction: f }),
       addRecentAsset: (symbol) =>
         set((state) => ({
           recentAssets: [symbol, ...state.recentAssets.filter((s) => s !== symbol)].slice(0, 5),

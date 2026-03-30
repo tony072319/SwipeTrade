@@ -27,6 +27,7 @@ import TradeResult from "@/components/game/TradeResult";
 import AssetPicker from "@/components/game/AssetPicker";
 import TimeframePicker from "@/components/game/TimeframePicker";
 import IndicatorSelector from "@/components/game/IndicatorSelector";
+import BetSizeSelector from "@/components/game/BetSizeSelector";
 
 interface GameScreenProps {
   balance: number;
@@ -58,9 +59,11 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     revealSpeed,
     soundEnabled,
     difficulty,
+    betFraction,
     setSelectedAsset,
     setSelectedTimeframe,
     setRevealSpeed,
+    setBetFraction,
   } = useSettingsStore();
 
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
@@ -176,11 +179,12 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     if (!chart || !direction) return;
     const entryPrice = chart.visibleCandles[chart.visibleCandles.length - 1].close;
     const exitPrice = chart.hiddenCandles[chart.hiddenCandles.length - 1].close;
-    const betAmount = Math.round(balance * BET_FRACTION * 100) / 100;
+    const fraction = betFraction || BET_FRACTION;
+    const betAmount = Math.round(balance * fraction * 100) / 100;
     const tradeResult = calculateTrade({ direction, leverage, entryPrice, exitPrice, betAmount });
     setResult(tradeResult);
     onTrade(tradeResult.pnl);
-  }, [chart, direction, leverage, balance, setResult, onTrade]);
+  }, [chart, direction, leverage, balance, betFraction, setResult, onTrade]);
 
   const handleNext = useCallback(() => {
     reset();
@@ -382,6 +386,11 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 </button>
               </div>
             </div>
+            <BetSizeSelector
+              balance={balance}
+              betFraction={betFraction || 0.1}
+              onChange={setBetFraction}
+            />
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
