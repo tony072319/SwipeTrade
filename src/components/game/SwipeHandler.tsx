@@ -22,7 +22,7 @@ export default function SwipeHandler({
     threshold: 60,
   });
 
-  const opacity = Math.min(Math.abs(deltaX) / 120, 1);
+  const opacity = Math.min(Math.abs(deltaX) / 100, 1);
 
   return (
     <div ref={ref} className="relative h-full w-full select-none">
@@ -31,41 +31,51 @@ export default function SwipeHandler({
       {/* Directional overlay */}
       {swiping && direction && (
         <div
-          className={cn(
-            "pointer-events-none absolute inset-0 z-20 flex items-center justify-center transition-opacity",
-            direction === "long"
-              ? "bg-profit/5"
-              : "bg-loss/5",
-          )}
+          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center animate-fade-in"
           style={{ opacity }}
         >
+          {/* Background glow */}
           <div
             className={cn(
-              "rounded-2xl px-8 py-4 text-3xl font-black tracking-wider",
+              "absolute inset-0",
               direction === "long"
-                ? "bg-profit/20 text-profit"
-                : "bg-loss/20 text-loss",
+                ? "bg-gradient-to-r from-transparent via-profit/5 to-profit/10"
+                : "bg-gradient-to-l from-transparent via-loss/5 to-loss/10",
+            )}
+          />
+
+          {/* Direction label */}
+          <div
+            className={cn(
+              "relative rounded-2xl px-10 py-5 animate-scale-in",
+              direction === "long"
+                ? "bg-profit/15 border border-profit/30"
+                : "bg-loss/15 border border-loss/30",
             )}
           >
-            {direction === "long" ? "LONG >" : "< SHORT"}
+            <span
+              className={cn(
+                "text-4xl font-black tracking-widest",
+                direction === "long" ? "text-profit" : "text-loss",
+              )}
+            >
+              {direction === "long" ? "LONG" : "SHORT"}
+            </span>
           </div>
         </div>
       )}
 
-      {/* Swipe hint arrows at edges */}
-      {enabled && !swiping && (
-        <>
-          <div className="pointer-events-none absolute left-2 top-1/2 z-10 -translate-y-1/2 text-loss/30">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" />
-            </svg>
-          </div>
-          <div className="pointer-events-none absolute right-2 top-1/2 z-10 -translate-y-1/2 text-profit/30">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-            </svg>
-          </div>
-        </>
+      {/* Edge glow lines */}
+      {swiping && deltaX !== 0 && (
+        <div
+          className="pointer-events-none absolute inset-y-0 z-10 w-0.5"
+          style={{
+            [deltaX > 0 ? "right" : "left"]: 0,
+            opacity: opacity * 0.8,
+            backgroundColor: deltaX > 0 ? "#00dc82" : "#ff4757",
+            boxShadow: `0 0 30px 5px ${deltaX > 0 ? "#00dc8260" : "#ff475760"}`,
+          }}
+        />
       )}
     </div>
   );

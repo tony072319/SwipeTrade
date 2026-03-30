@@ -51,7 +51,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex max-w-md">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
@@ -60,13 +60,18 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-all duration-200",
                 isActive
-                  ? "text-text-primary"
+                  ? "text-accent"
                   : "text-text-muted hover:text-text-secondary",
               )}
             >
-              {item.icon}
+              <div className={cn(
+                "transition-transform duration-200",
+                isActive && "scale-110",
+              )}>
+                {item.icon}
+              </div>
               {item.label}
             </Link>
           );

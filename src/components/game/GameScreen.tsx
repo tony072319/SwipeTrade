@@ -1,16 +1,22 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { useChart } from "@/hooks/useChart";
+import { useHydration } from "@/hooks/useHydration";
 import { calculateTrade } from "@/lib/game/engine";
-import { BET_FRACTION, STARTING_BALANCE } from "@/lib/game/constants";
+import { BET_FRACTION } from "@/lib/game/constants";
 import type { Direction } from "@/types/trade";
+import type { Asset, TimeFrame } from "@/types/chart";
 import ChartReveal from "@/components/chart/ChartReveal";
 import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
 import LeverageSelector from "@/components/game/LeverageSelector";
 import TradeResult from "@/components/game/TradeResult";
+import AssetPicker from "@/components/game/AssetPicker";
+import TimeframePicker from "@/components/game/TimeframePicker";
+import IndicatorSelector from "@/components/game/IndicatorSelector";
 
 interface GameScreenProps {
   balance: number;
@@ -18,6 +24,7 @@ interface GameScreenProps {
 }
 
 export default function GameScreen({ balance, onTrade }: GameScreenProps) {
+  const hydrated = useHydration();
   const { chart: chartData, loading, error, fetchChart } = useChart();
   const {
     phase,
@@ -34,31 +41,39 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     reset,
   } = useGameStore();
 
-  // Load initial chart
-  useEffect(() => {
-    fetchChart();
-  }, [fetchChart]);
+  const {
+    selectedAsset,
+    selectedTimeframe,
+    setSelectedAsset,
+    setSelectedTimeframe,
+  } = useSettingsStore();
 
-  // When chart data arrives, update game store
+  const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+  const [indicatorOpen, setIndicatorOpen] = useState(false);
+
+  // Fetch chart with current settings
+  const loadChart = useCallback(() => {
+    const params: { asset?: string; timeframe?: string } = {};
+    if (hydrated && selectedAsset) params.asset = selectedAsset.symbol;
+    if (hydrated && selectedTimeframe) params.timeframe = selectedTimeframe;
+    fetchChart(Object.keys(params).length > 0 ? params : undefined);
+  }, [fetchChart, selectedAsset, selectedTimeframe, hydrated]);
+
   useEffect(() => {
-    if (chartData && !loading) {
-      setChart(chartData);
-    }
+    loadChart();
+  }, [loadChart]);
+
+  useEffect(() => {
+    if (chartData && !loading) setChart(chartData);
   }, [chartData, loading, setChart]);
 
-  // When loading, set loading phase
   useEffect(() => {
-    if (loading) {
-      setLoading();
-    }
+    if (loading) setLoading();
   }, [loading, setLoading]);
 
-  // After swipe, start reveal
   useEffect(() => {
     if (phase === "swiped") {
-      const timer = setTimeout(() => {
-        setRevealing();
-      }, 300);
+      const timer = setTimeout(() => setRevealing(), 200);
       return () => clearTimeout(timer);
     }
   }, [phase, setRevealing]);
@@ -73,34 +88,46 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
   const handleRevealComplete = useCallback(() => {
     if (!chart || !direction) return;
-
     const entryPrice = chart.visibleCandles[chart.visibleCandles.length - 1].close;
     const exitPrice = chart.hiddenCandles[chart.hiddenCandles.length - 1].close;
     const betAmount = Math.round(balance * BET_FRACTION * 100) / 100;
-
-    const tradeResult = calculateTrade({
-      direction,
-      leverage,
-      entryPrice,
-      exitPrice,
-      betAmount,
-    });
-
+    const tradeResult = calculateTrade({ direction, leverage, entryPrice, exitPrice, betAmount });
     setResult(tradeResult);
     onTrade(tradeResult.pnl);
   }, [chart, direction, leverage, balance, setResult, onTrade]);
 
   const handleNext = useCallback(() => {
     reset();
-    fetchChart();
-  }, [reset, fetchChart]);
+    loadChart();
+  }, [reset, loadChart]);
 
-  const handleButtonTrade = useCallback(
-    (dir: Direction) => {
-      if (phase !== "viewing") return;
-      submitSwipe(dir);
+  const handleAssetSelect = useCallback(
+    (asset: Asset | null) => {
+      setSelectedAsset(asset);
+      // Reset timeframe if new asset type doesn't support current timeframe
+      reset();
+      setTimeout(() => {
+        const params: { asset?: string; timeframe?: string } = {};
+        if (asset) params.asset = asset.symbol;
+        if (selectedTimeframe) params.timeframe = selectedTimeframe;
+        fetchChart(Object.keys(params).length > 0 ? params : undefined);
+      }, 50);
     },
-    [phase, submitSwipe],
+    [setSelectedAsset, selectedTimeframe, reset, fetchChart],
+  );
+
+  const handleTimeframeChange = useCallback(
+    (tf: TimeFrame | null) => {
+      setSelectedTimeframe(tf);
+      reset();
+      setTimeout(() => {
+        const params: { asset?: string; timeframe?: string } = {};
+        if (selectedAsset) params.asset = selectedAsset.symbol;
+        if (tf) params.timeframe = tf;
+        fetchChart(Object.keys(params).length > 0 ? params : undefined);
+      }, 50);
+    },
+    [setSelectedTimeframe, selectedAsset, reset, fetchChart],
   );
 
   return (
@@ -110,8 +137,8 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
         {phase === "loading" && (
           <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-muted border-t-text-primary" />
-              <p className="text-sm text-text-secondary">Loading chart...</p>
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-muted border-t-accent" />
+              <p className="text-sm text-text-muted">Loading chart...</p>
             </div>
           </div>
         )}
@@ -122,7 +149,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               <p className="text-sm text-loss">{error}</p>
               <button
                 onClick={handleNext}
-                className="rounded-lg bg-text-primary px-4 py-2 text-sm font-medium text-surface"
+                className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white"
               >
                 Try Again
               </button>
@@ -132,13 +159,25 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
         {chart && phase !== "loading" && (
           <>
-            <ChartOverlay asset={chart.asset} timeframe={chart.timeframe} />
+            <ChartOverlay
+              asset={chart.asset}
+              timeframe={chart.timeframe}
+              onAssetClick={() => setAssetPickerOpen(true)}
+            />
 
-            <SwipeHandler
-              enabled={phase === "viewing"}
-              onSwipe={handleSwipe}
-            >
-              <div className="h-full px-2 pt-10 pb-4">
+            {/* Timeframe picker below overlay */}
+            {phase === "viewing" && (
+              <div className="absolute left-3 top-11 z-10">
+                <TimeframePicker
+                  value={hydrated ? selectedTimeframe : null}
+                  onChange={handleTimeframeChange}
+                  assetType={chart.asset.type}
+                />
+              </div>
+            )}
+
+            <SwipeHandler enabled={phase === "viewing"} onSwipe={handleSwipe}>
+              <div className="h-full px-1 pt-[4.5rem] pb-2">
                 <ChartReveal
                   visibleCandles={chart.visibleCandles}
                   hiddenCandles={chart.hiddenCandles}
@@ -153,52 +192,55 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               </div>
             </SwipeHandler>
 
-            {/* Result overlay */}
             {phase === "result" && result && (
-              <TradeResult
-                result={result}
-                balance={balance}
-                onNext={handleNext}
-              />
+              <TradeResult result={result} balance={balance} onNext={handleNext} />
             )}
           </>
         )}
       </div>
 
       {/* Bottom controls */}
-      <div className="border-t border-border px-4 py-3">
+      <div className="border-t border-border bg-surface-secondary/30 px-4 py-3">
         {phase === "viewing" && (
           <div className="flex flex-col gap-3">
-            <LeverageSelector
-              value={leverage}
-              onChange={setLeverage}
-              disabled={phase !== "viewing"}
-            />
-            <div className="flex gap-2">
+            <div className="flex items-center justify-between">
+              <LeverageSelector
+                value={leverage}
+                onChange={setLeverage}
+                disabled={phase !== "viewing"}
+              />
               <button
-                onClick={() => handleButtonTrade("short")}
-                className="flex-1 rounded-xl bg-loss/10 py-3 text-sm font-bold text-loss transition-colors hover:bg-loss/20 active:bg-loss/30"
+                onClick={() => setIndicatorOpen(true)}
+                className="rounded-lg bg-surface-tertiary px-2.5 py-1.5 text-[10px] font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
               >
-                SHORT
-              </button>
-              <button
-                onClick={() => handleButtonTrade("long")}
-                className="flex-1 rounded-xl bg-profit/10 py-3 text-sm font-bold text-profit transition-colors hover:bg-profit/20 active:bg-profit/30"
-              >
-                LONG
+                📊 Indicators
               </button>
             </div>
-            <p className="text-center text-xs text-text-muted">
-              Swipe or tap to trade
-            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleSwipe("short")}
+                className="flex-1 rounded-xl border border-loss/20 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.98]"
+              >
+                ← SHORT
+              </button>
+              <button
+                onClick={() => handleSwipe("long")}
+                className="flex-1 rounded-xl border border-profit/20 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.98]"
+              >
+                LONG →
+              </button>
+            </div>
           </div>
         )}
 
         {(phase === "swiped" || phase === "revealing") && (
-          <div className="flex items-center justify-center py-3">
-            <p className="text-sm text-text-secondary">
-              {phase === "swiped" ? "Revealing..." : "Watching the market..."}
-            </p>
+          <div className="flex items-center justify-center py-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+              <p className="text-sm font-medium text-text-secondary">
+                Revealing candles...
+              </p>
+            </div>
           </div>
         )}
 
@@ -210,6 +252,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <AssetPicker
+        open={assetPickerOpen}
+        onClose={() => setAssetPickerOpen(false)}
+        onSelect={handleAssetSelect}
+        selectedAsset={hydrated ? selectedAsset : null}
+      />
+      <IndicatorSelector
+        open={indicatorOpen}
+        onClose={() => setIndicatorOpen(false)}
+      />
     </div>
   );
 }

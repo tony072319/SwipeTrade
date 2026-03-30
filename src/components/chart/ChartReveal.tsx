@@ -54,38 +54,39 @@ export default function ChartReveal({
       height: container.clientHeight,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#94a3b8",
+        textColor: "#64748b",
         fontFamily: "Inter, system-ui, sans-serif",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "#1e293b40" },
-        horzLines: { color: "#1e293b40" },
+        vertLines: { color: "#1e293b30" },
+        horzLines: { color: "#1e293b30" },
       },
       crosshair: {
-        vertLine: { color: "#64748b60", width: 1, style: 3 },
-        horzLine: { color: "#64748b60", width: 1, style: 3 },
+        vertLine: { color: "#64748b40", width: 1, style: 3 },
+        horzLine: { color: "#64748b40", width: 1, style: 3 },
       },
       rightPriceScale: {
-        borderColor: "#334155",
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        borderColor: "#1e293b",
+        scaleMargins: { top: 0.05, bottom: 0.05 },
       },
       timeScale: {
-        borderColor: "#334155",
+        borderColor: "#1e293b",
         timeVisible: true,
         secondsVisible: false,
+        rightOffset: hiddenCandles.length + 5, // pre-allocate space for hidden candles
       },
       handleScroll: false,
       handleScale: false,
     });
 
     const series = chart.addCandlestickSeries({
-      upColor: "#22c55e",
-      downColor: "#ef4444",
-      borderUpColor: "#22c55e",
-      borderDownColor: "#ef4444",
-      wickUpColor: "#22c55e",
-      wickDownColor: "#ef4444",
+      upColor: "#00dc82",
+      downColor: "#ff4757",
+      borderUpColor: "#00dc82",
+      borderDownColor: "#ff4757",
+      wickUpColor: "#00dc8280",
+      wickDownColor: "#ff475780",
     });
 
     series.setData(visibleCandles.map(candleToLW));
@@ -94,9 +95,9 @@ export default function ChartReveal({
     if (entryPrice) {
       series.createPriceLine({
         price: entryPrice,
-        color: "#facc15",
+        color: "#fbbf24",
         lineWidth: 1,
-        lineStyle: 2, // dashed
+        lineStyle: 2,
         axisLabelVisible: true,
         title: "Entry",
       });
@@ -127,7 +128,6 @@ export default function ChartReveal({
       chartRef.current = null;
       seriesRef.current = null;
     };
-    // Only re-init when candle data changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleCandles, hiddenCandles]);
 
@@ -135,7 +135,7 @@ export default function ChartReveal({
     onRevealComplete();
   }, [onRevealComplete]);
 
-  // Handle reveal animation
+  // Handle reveal animation — candles grow into pre-allocated space, no scrolling
   useEffect(() => {
     if (!revealing || !seriesRef.current) return;
 
@@ -143,8 +143,7 @@ export default function ChartReveal({
 
     intervalRef.current = setInterval(() => {
       const series = seriesRef.current;
-      const chart = chartRef.current;
-      if (!series || !chart) return;
+      if (!series) return;
 
       const idx = revealIndexRef.current;
       if (idx >= hiddenCandles.length) {
@@ -158,7 +157,7 @@ export default function ChartReveal({
 
       const candle = hiddenCandles[idx];
       series.update(candleToLW(candle));
-      chart.timeScale().scrollToPosition(2, false);
+      // No scrollToPosition — chart stays fixed, candles appear in pre-allocated space
       revealIndexRef.current++;
       setRevealedCount(revealIndexRef.current);
     }, CANDLE_REVEAL_INTERVAL_MS);
@@ -178,9 +177,8 @@ export default function ChartReveal({
         className="h-full w-full"
         style={{ minHeight: 300 }}
       />
-      {/* Reveal progress indicator */}
       {revealing && (
-        <div className="absolute bottom-2 right-2 z-10 rounded-md bg-surface-secondary/80 px-2 py-1 text-xs text-text-muted backdrop-blur-sm">
+        <div className="absolute bottom-3 right-3 z-10 rounded-lg bg-black/50 px-2.5 py-1 text-xs font-medium text-white/70 backdrop-blur-sm">
           {revealedCount}/{hiddenCandles.length}
         </div>
       )}

@@ -16,7 +16,7 @@ export default function LeverageSelector({
 }: LeverageSelectorProps) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-text-secondary">Leverage</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Lev</span>
       <div className="flex gap-1">
         {LEVERAGE_OPTIONS.map((lev) => (
           <button
@@ -24,10 +24,10 @@ export default function LeverageSelector({
             onClick={() => onChange(lev)}
             disabled={disabled}
             className={cn(
-              "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+              "rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all",
               value === lev
-                ? "bg-text-primary text-surface"
-                : "bg-surface-secondary text-text-secondary hover:text-text-primary",
+                ? "bg-accent text-white shadow-sm shadow-accent/30"
+                : "bg-surface-tertiary text-text-muted hover:text-text-secondary border border-transparent",
               disabled && "opacity-50",
             )}
           >

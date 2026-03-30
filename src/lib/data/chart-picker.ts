@@ -18,44 +18,12 @@ async function fetchCandles(
   return fetchYahooOHLCV(asset.symbol, timeframe);
 }
 
-export async function pickRandomChart(): Promise<ChartData> {
-  const asset = pickRandom(ALL_ASSETS);
-  const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
-  const timeframe = pickRandom(availableTimeframes);
-
-  const totalNeeded = VISIBLE_CANDLES + HIDDEN_CANDLES;
-  const candles = await fetchCandles(asset, timeframe);
-
-  if (candles.length < totalNeeded) {
-    throw new Error(
-      `Not enough candles for ${asset.symbol} ${timeframe}: got ${candles.length}, need ${totalNeeded}`,
-    );
-  }
-
-  // Pick a random starting point (not too close to the end)
-  const maxStart = candles.length - totalNeeded;
-  const startIndex = Math.floor(Math.random() * (maxStart + 1));
-
-  const visibleCandles = candles.slice(startIndex, startIndex + VISIBLE_CANDLES);
-  const hiddenCandles = candles.slice(
-    startIndex + VISIBLE_CANDLES,
-    startIndex + VISIBLE_CANDLES + HIDDEN_CANDLES,
-  );
-
-  return {
-    asset,
-    timeframe,
-    visibleCandles,
-    hiddenCandles,
-  };
-}
-
-export async function pickChartForAssetAndTimeframe(
+function buildChartData(
   asset: Asset,
   timeframe: TimeFrame,
-): Promise<ChartData> {
+  candles: Candle[],
+): ChartData {
   const totalNeeded = VISIBLE_CANDLES + HIDDEN_CANDLES;
-  const candles = await fetchCandles(asset, timeframe);
 
   if (candles.length < totalNeeded) {
     throw new Error(
@@ -75,4 +43,30 @@ export async function pickChartForAssetAndTimeframe(
       startIndex + VISIBLE_CANDLES + HIDDEN_CANDLES,
     ),
   };
+}
+
+export async function pickRandomChart(
+  forceAsset?: Asset,
+  forceTimeframe?: TimeFrame,
+): Promise<ChartData> {
+  const asset = forceAsset ?? pickRandom(ALL_ASSETS);
+  const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
+
+  let timeframe = forceTimeframe ?? pickRandom(availableTimeframes);
+
+  // If forced timeframe isn't available for this asset type, pick a valid one
+  if (!availableTimeframes.includes(timeframe)) {
+    timeframe = pickRandom(availableTimeframes);
+  }
+
+  const candles = await fetchCandles(asset, timeframe);
+  return buildChartData(asset, timeframe, candles);
+}
+
+export async function pickChartForAssetAndTimeframe(
+  asset: Asset,
+  timeframe: TimeFrame,
+): Promise<ChartData> {
+  const candles = await fetchCandles(asset, timeframe);
+  return buildChartData(asset, timeframe, candles);
 }

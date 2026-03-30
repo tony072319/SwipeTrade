@@ -10,6 +10,23 @@ interface TradeResultProps {
   onNext: () => void;
 }
 
+function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
+  const colors = ["#00dc82", "#6366f1", "#fbbf24", "#f472b6", "#22d3ee"];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  return (
+    <div
+      className="absolute top-0 h-2 w-2 rounded-full"
+      style={{
+        left: `${x}%`,
+        backgroundColor: color,
+        animation: `confetti-fall 1.2s ease-out ${delay}s forwards`,
+        opacity: 0.8,
+      }}
+    />
+  );
+}
+
 export default function TradeResult({
   result,
   balance,
@@ -18,16 +35,14 @@ export default function TradeResult({
   const [animatedPnl, setAnimatedPnl] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  // Animate in
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 100);
+    const t = setTimeout(() => setVisible(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  // Count-up animation for P&L
   useEffect(() => {
-    const duration = 600;
-    const steps = 30;
+    const duration = 500;
+    const steps = 25;
     const increment = result.pnl / steps;
     let current = 0;
     let step = 0;
@@ -49,16 +64,33 @@ export default function TradeResult({
   return (
     <div
       className={cn(
-        "absolute inset-0 z-30 flex items-center justify-center bg-surface/80 backdrop-blur-sm transition-opacity duration-300",
+        "absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md transition-opacity duration-200",
         visible ? "opacity-100" : "opacity-0",
       )}
     >
-      <div className="mx-4 w-full max-w-sm rounded-2xl border border-border bg-surface p-6 shadow-xl">
-        {/* Direction badge */}
+      {/* Confetti for wins */}
+      {result.isWin && visible && (
+        <div className="pointer-events-none absolute inset-x-0 top-1/4 h-20 overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <ConfettiParticle
+              key={i}
+              delay={Math.random() * 0.5}
+              x={Math.random() * 100}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className={cn(
+        "mx-4 w-full max-w-sm rounded-2xl border bg-surface-secondary p-6 shadow-2xl",
+        visible && "animate-scale-in",
+        result.isWin ? "border-profit/20" : "border-loss/20",
+      )}>
+        {/* Direction + leverage badge */}
         <div className="mb-4 flex items-center justify-center gap-2">
           <span
             className={cn(
-              "rounded-lg px-3 py-1 text-sm font-bold uppercase",
+              "rounded-lg px-3 py-1 text-xs font-black uppercase tracking-wider",
               result.direction === "long"
                 ? "bg-profit-bg text-profit"
                 : "bg-loss-bg text-loss",
@@ -66,16 +98,16 @@ export default function TradeResult({
           >
             {result.direction}
           </span>
-          <span className="rounded-lg bg-surface-secondary px-3 py-1 text-sm font-semibold text-text-secondary">
+          <span className="rounded-lg bg-surface-tertiary px-3 py-1 text-xs font-bold text-text-secondary">
             {result.leverage}x
           </span>
         </div>
 
         {/* P&L display */}
-        <div className="mb-4 text-center">
+        <div className="mb-5 text-center">
           <p
             className={cn(
-              "text-4xl font-black tabular-nums",
+              "text-5xl font-black tabular-nums tracking-tight",
               result.isWin ? "text-profit" : "text-loss",
             )}
           >
@@ -84,8 +116,8 @@ export default function TradeResult({
           </p>
           <p
             className={cn(
-              "mt-1 text-sm font-medium",
-              result.isWin ? "text-profit/70" : "text-loss/70",
+              "mt-1 text-sm font-semibold",
+              result.isWin ? "text-profit/60" : "text-loss/60",
             )}
           >
             {formatPercent(result.pnlPercent)}
@@ -93,28 +125,28 @@ export default function TradeResult({
         </div>
 
         {/* Trade details */}
-        <div className="mb-5 space-y-2 rounded-xl bg-surface-secondary p-3">
+        <div className="mb-5 space-y-2 rounded-xl bg-surface/50 p-3">
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Entry</span>
-            <span className="font-medium text-text-primary tabular-nums">
+            <span className="font-mono font-medium text-text-primary">
               {formatCurrency(result.entryPrice)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Exit</span>
-            <span className="font-medium text-text-primary tabular-nums">
+            <span className="font-mono font-medium text-text-primary">
               {formatCurrency(result.exitPrice)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-text-muted">Bet</span>
-            <span className="font-medium text-text-primary tabular-nums">
+            <span className="font-mono font-medium text-text-primary">
               {formatCurrency(result.betAmount)}
             </span>
           </div>
           <div className="border-t border-border pt-2 flex justify-between text-sm">
             <span className="text-text-muted">Balance</span>
-            <span className="font-semibold text-text-primary tabular-nums">
+            <span className="font-mono font-bold text-text-primary">
               {formatCurrency(balance)}
             </span>
           </div>
@@ -123,7 +155,7 @@ export default function TradeResult({
         {/* Next button */}
         <button
           onClick={onNext}
-          className="w-full rounded-xl bg-text-primary py-3 text-sm font-semibold text-surface transition-opacity hover:opacity-90 active:opacity-80"
+          className="w-full rounded-xl bg-accent py-3.5 text-sm font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
         >
           Next Trade
         </button>
