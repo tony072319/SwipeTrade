@@ -68,6 +68,11 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     const visible: IndicatorData = {};
     const hidden: IndicatorData = {};
 
+    if (enabledIndicators.includes("volume")) {
+      const volumes = allCandles.map((c) => c.volume ?? null);
+      visible.volume = volumes.slice(0, splitIdx);
+      hidden.volume = volumes.slice(splitIdx);
+    }
     if (enabledIndicators.includes("ema9")) {
       const full = calculateEMA(closes, 9);
       visible.ema9 = full.slice(0, splitIdx);

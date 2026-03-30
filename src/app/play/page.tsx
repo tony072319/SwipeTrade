@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import GameScreen from "@/components/game/GameScreen";
 import PortfolioBar from "@/components/portfolio/PortfolioBar";
+import TutorialOverlay from "@/components/game/TutorialOverlay";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useHydration } from "@/hooks/useHydration";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,9 +17,24 @@ export default function PlayPage() {
     usePortfolioStore();
   const { chart, direction, leverage } = useGameStore();
   const [flash, setFlash] = useState<"profit" | "loss" | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const winRate = totalTrades > 0 ? winningTrades / totalTrades : 0;
   const currentBalance = hydrated ? balance : STARTING_BALANCE;
+
+  // Show tutorial on first visit
+  useEffect(() => {
+    if (!hydrated) return;
+    const seen = localStorage.getItem("swipetrade-tutorial-seen");
+    if (!seen && totalTrades === 0) {
+      setShowTutorial(true);
+    }
+  }, [hydrated, totalTrades]);
+
+  const handleTutorialComplete = useCallback(() => {
+    setShowTutorial(false);
+    localStorage.setItem("swipetrade-tutorial-seen", "true");
+  }, []);
 
   const handleTrade = useCallback(
     (pnl: number) => {
@@ -59,6 +75,9 @@ export default function PlayPage() {
 
   return (
     <main className="flex h-dvh flex-col pb-14">
+      {/* Tutorial overlay for first-time users */}
+      {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}
+
       {/* Portfolio header */}
       <PortfolioBar
         balance={currentBalance}

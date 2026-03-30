@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { TradeResult as TradeResultType } from "@/types/trade";
+import { usePortfolioStore } from "@/stores/portfolio-store";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
+import { playWinSound, playLossSound } from "@/lib/sounds";
 
 interface TradeResultProps {
   result: TradeResultType;
@@ -27,6 +29,14 @@ function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
   );
 }
 
+function getStreakMessage(streak: number): string | null {
+  if (streak >= 10) return "UNSTOPPABLE! 10+ streak!";
+  if (streak >= 7) return "ON FIRE! 7 in a row!";
+  if (streak >= 5) return "HOT STREAK! 5 wins!";
+  if (streak >= 3) return "Nice streak! 3 wins!";
+  return null;
+}
+
 export default function TradeResult({
   result,
   balance,
@@ -34,11 +44,18 @@ export default function TradeResult({
 }: TradeResultProps) {
   const [animatedPnl, setAnimatedPnl] = useState(0);
   const [visible, setVisible] = useState(false);
+  const currentStreak = usePortfolioStore((s) => s.currentStreak);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50);
+    // Haptic + sound feedback on result
+    if (navigator.vibrate) {
+      navigator.vibrate(result.isWin ? [50, 30, 50] : [100]);
+    }
+    if (result.isWin) playWinSound();
+    else playLossSound();
     return () => clearTimeout(t);
-  }, []);
+  }, [result.isWin]);
 
   useEffect(() => {
     const duration = 500;
@@ -61,6 +78,9 @@ export default function TradeResult({
     return () => clearInterval(interval);
   }, [result.pnl]);
 
+  const streakMessage = result.isWin ? getStreakMessage(currentStreak) : null;
+  const showBigConfetti = result.isWin && currentStreak >= 5;
+
   return (
     <div
       className={cn(
@@ -71,10 +91,23 @@ export default function TradeResult({
       {/* Confetti for wins */}
       {result.isWin && visible && (
         <div className="pointer-events-none absolute inset-x-0 top-1/4 h-20 overflow-hidden">
-          {Array.from({ length: 20 }).map((_, i) => (
+          {Array.from({ length: showBigConfetti ? 40 : 20 }).map((_, i) => (
             <ConfettiParticle
               key={i}
               delay={Math.random() * 0.5}
+              x={Math.random() * 100}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Extra confetti burst for big streaks */}
+      {showBigConfetti && visible && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 overflow-hidden">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <ConfettiParticle
+              key={`extra-${i}`}
+              delay={Math.random() * 0.8}
               x={Math.random() * 100}
             />
           ))}
@@ -86,6 +119,15 @@ export default function TradeResult({
         visible && "animate-scale-in",
         result.isWin ? "border-profit/20" : "border-loss/20",
       )}>
+        {/* Streak banner */}
+        {streakMessage && (
+          <div className="mb-3 -mx-6 -mt-6 rounded-t-2xl bg-gradient-to-r from-profit/20 via-accent/20 to-profit/20 px-4 py-2.5 text-center">
+            <p className="text-sm font-black text-profit animate-pulse">
+              {currentStreak >= 5 ? "🔥 " : ""}{streakMessage}{currentStreak >= 5 ? " 🔥" : ""}
+            </p>
+          </div>
+        )}
+
         {/* Direction + leverage badge */}
         <div className="mb-4 flex items-center justify-center gap-2">
           <span

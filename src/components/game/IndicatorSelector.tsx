@@ -17,7 +17,7 @@ const INDICATORS: IndicatorOption[] = [
   { id: "rsi", label: "RSI", description: "Relative Strength Index", color: "#818cf8" },
   { id: "macd", label: "MACD", description: "Momentum indicator", color: "#22d3ee" },
   { id: "bollinger", label: "Bollinger", description: "Volatility bands", color: "#a78bfa" },
-  { id: "volume", label: "Volume", description: "Stocks only", color: "#64748b" },
+  { id: "volume", label: "Volume", description: "Trading volume bars", color: "#64748b" },
 ];
 
 interface IndicatorSelectorProps {

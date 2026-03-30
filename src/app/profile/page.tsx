@@ -19,6 +19,7 @@ export default function ProfilePage() {
     bestTrade,
     worstTrade,
     currentStreak,
+    bestStreak,
     resetPortfolio,
   } = usePortfolioStore();
 
@@ -112,8 +113,9 @@ export default function ProfilePage() {
           color={currentStreak >= 3 ? "profit" : undefined}
         />
         <StatCard
-          label="Wins / Losses"
-          value={`${winningTrades} / ${totalTrades - winningTrades}`}
+          label="Best Streak"
+          value={bestStreak > 0 ? `${bestStreak}W` : "0"}
+          color={bestStreak >= 5 ? "profit" : undefined}
         />
       </div>
 

@@ -72,6 +72,7 @@ export default function ChartReveal({
   const macdLineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const macdSignalSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const macdHistSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+  const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 
   const showRsi = enabledIndicators.includes("rsi");
   const showMacd = enabledIndicators.includes("macd");
@@ -141,6 +142,32 @@ export default function ChartReveal({
     chart.timeScale().applyOptions({
       rightOffset: hiddenCandles.length + 5,
     });
+
+    // Add volume histogram if enabled
+    if (enabledIndicators.includes("volume") && visibleIndicatorData?.volume) {
+      const volumeSeries = chart.addHistogramSeries({
+        priceLineVisible: false,
+        lastValueVisible: false,
+        priceScaleId: "volume",
+      });
+      chart.priceScale("volume").applyOptions({
+        scaleMargins: { top: 0.8, bottom: 0 },
+      });
+      const volData: HistogramData<Time>[] = [];
+      for (let i = 0; i < visibleCandles.length; i++) {
+        const v = visibleIndicatorData.volume[i];
+        if (v !== null && v !== undefined) {
+          const isUp = visibleCandles[i].close >= visibleCandles[i].open;
+          volData.push({
+            time: visibleCandles[i].time as Time,
+            value: v,
+            color: isUp ? "#00dc8240" : "#ff475740",
+          });
+        }
+      }
+      volumeSeries.setData(volData);
+      volumeSeriesRef.current = volumeSeries;
+    }
 
     // Add overlay indicator series (EMA, Bollinger)
     const newOverlaySeries = new Map<string, ISeriesApi<"Line">>();
@@ -388,6 +415,7 @@ export default function ChartReveal({
       macdLineSeriesRef.current = null;
       macdSignalSeriesRef.current = null;
       macdHistSeriesRef.current = null;
+      volumeSeriesRef.current = null;
       overlaySeriesRef.current = new Map();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -411,6 +439,16 @@ export default function ChartReveal({
     for (let i = revealIndexRef.current; i < hiddenCandles.length; i++) {
       const candle = hiddenCandles[i];
       series.update(candleToLW(candle));
+
+      // Update volume
+      if (hiddenIndicatorData?.volume?.[i] !== null && hiddenIndicatorData?.volume?.[i] !== undefined) {
+        const isUp = candle.close >= candle.open;
+        volumeSeriesRef.current?.update({
+          time: candle.time as Time,
+          value: hiddenIndicatorData.volume[i]!,
+          color: isUp ? "#00dc8240" : "#ff475740",
+        } as HistogramData<Time>);
+      }
 
       // Update overlay indicators
       if (hiddenIndicatorData) {
@@ -472,6 +510,16 @@ export default function ChartReveal({
 
       const candle = hiddenCandles[idx];
       series.update(candleToLW(candle));
+
+      // Update volume
+      if (hiddenIndicatorData?.volume?.[idx] !== null && hiddenIndicatorData?.volume?.[idx] !== undefined) {
+        const isUp = candle.close >= candle.open;
+        volumeSeriesRef.current?.update({
+          time: candle.time as Time,
+          value: hiddenIndicatorData.volume[idx]!,
+          color: isUp ? "#00dc8240" : "#ff475740",
+        } as HistogramData<Time>);
+      }
 
       // Update overlay indicator series
       if (hiddenIndicatorData) {
