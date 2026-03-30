@@ -19,6 +19,7 @@ export default function ChartOverlay({
   candles,
 }: ChartOverlayProps) {
   return (
+    <>
     <div className="pointer-events-none absolute left-3 top-3 z-10">
       <div className="flex items-center gap-1.5">
         <button
@@ -58,5 +59,27 @@ export default function ChartOverlay({
         </div>
       )}
     </div>
+
+    {/* Price summary on right side */}
+    {candles && candles.length > 5 && (() => {
+      const high = Math.max(...candles.map((c) => c.high));
+      const low = Math.min(...candles.map((c) => c.low));
+      const current = candles[candles.length - 1].close;
+      const formatPrice = (p: number) => p >= 100 ? p.toFixed(0) : p >= 1 ? p.toFixed(2) : p.toFixed(4);
+      return (
+        <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-0.5">
+          <span className="rounded-md bg-profit/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-profit border border-profit/10">
+            H {formatPrice(high)}
+          </span>
+          <span className="rounded-md bg-surface-secondary/80 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-text-secondary border border-glass-border">
+            C {formatPrice(current)}
+          </span>
+          <span className="rounded-md bg-loss/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-loss border border-loss/10">
+            L {formatPrice(low)}
+          </span>
+        </div>
+      );
+    })()}
+    </>
   );
 }
