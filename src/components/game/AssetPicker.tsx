@@ -11,6 +11,22 @@ const ETF_SYMBOLS = new Set(["SPY", "QQQ", "IWM", "DIA", "ARKK", "XLF", "XLE", "
 const ETF_ASSETS = STOCK_ASSETS.filter((a) => ETF_SYMBOLS.has(a.symbol));
 const PURE_STOCK_ASSETS = STOCK_ASSETS.filter((a) => !ETF_SYMBOLS.has(a.symbol));
 
+// Sector mapping for stock labels
+const SECTOR_MAP: Record<string, string> = {
+  AAPL: "Tech", MSFT: "Tech", GOOGL: "Tech", AMZN: "Tech", NVDA: "Tech", META: "Tech", TSLA: "Tech",
+  AMD: "Semis", NFLX: "Tech", CRM: "Tech", INTC: "Semis", AVGO: "Semis", ORCL: "Tech", ADBE: "Tech",
+  QCOM: "Semis", MU: "Semis", UBER: "Tech", SHOP: "Tech", SQ: "Fintech", PLTR: "Tech", SNAP: "Tech", ROKU: "Tech",
+  JPM: "Finance", V: "Finance", MA: "Finance", BAC: "Finance", GS: "Finance", PYPL: "Fintech", COIN: "Fintech",
+  JNJ: "Health", UNH: "Health", PFE: "Health", ABBV: "Health", LLY: "Health", MRNA: "Health",
+  WMT: "Consumer", COST: "Consumer", NKE: "Consumer", SBUX: "Consumer", MCD: "Consumer", DIS: "Consumer", KO: "Consumer", PEP: "Consumer",
+  BA: "Industrial", XOM: "Energy", CVX: "Energy", CAT: "Industrial", GE: "Industrial",
+  T: "Telecom", VZ: "Telecom", TMUS: "Telecom", CMCSA: "Telecom",
+  AMT: "REIT", O: "REIT",
+  FCX: "Materials", NEM: "Materials", LIN: "Materials",
+  UPS: "Transport", FDX: "Transport", DAL: "Transport", UAL: "Transport",
+  RIVN: "Growth", LCID: "Growth", SOFI: "Growth", HOOD: "Growth", RBLX: "Growth", U: "Growth",
+};
+
 interface AssetPickerProps {
   open: boolean;
   onClose: () => void;
@@ -201,7 +217,12 @@ export default function AssetPicker({
                       )}>
                         {asset.symbol}
                       </span>
-                      <span className="text-[9px] text-text-muted">{asset.name}</span>
+                      <span className="text-[9px] text-text-muted">
+                        {asset.name}
+                        {SECTOR_MAP[asset.symbol] && (
+                          <span className="ml-1 text-[8px] text-accent/60">{SECTOR_MAP[asset.symbol]}</span>
+                        )}
+                      </span>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleFavorite(asset.symbol); }}

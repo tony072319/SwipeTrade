@@ -9,6 +9,7 @@ import { useHydration } from "@/hooks/useHydration";
 import { calculateTrade } from "@/lib/game/engine";
 import { BET_FRACTION, STARTING_BALANCE } from "@/lib/game/constants";
 import { calculateEMA } from "@/lib/indicators/ema";
+import { calculateSMA } from "@/lib/indicators/sma";
 import { calculateRSI } from "@/lib/indicators/rsi";
 import { calculateMACD } from "@/lib/indicators/macd";
 import { calculateBollinger } from "@/lib/indicators/bollinger";
@@ -110,6 +111,16 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
       const full = calculateEMA(closes, 21);
       visible.ema21 = full.slice(0, splitIdx);
       hidden.ema21 = full.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("sma50")) {
+      const full = calculateSMA(closes, 50);
+      visible.sma50 = full.slice(0, splitIdx);
+      hidden.sma50 = full.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("sma200")) {
+      const full = calculateSMA(closes, 200);
+      visible.sma200 = full.slice(0, splitIdx);
+      hidden.sma200 = full.slice(splitIdx);
     }
     if (enabledIndicators.includes("rsi")) {
       const full = calculateRSI(closes);

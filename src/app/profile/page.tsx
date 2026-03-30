@@ -11,6 +11,7 @@ import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
+import TradeExport from "@/components/portfolio/TradeExport";
 import TradeCalendar from "@/components/portfolio/TradeCalendar";
 import StreakHistory from "@/components/portfolio/StreakHistory";
 import TradingHours from "@/components/portfolio/TradingHours";
@@ -253,9 +254,12 @@ export default function ProfilePage() {
           <h2 className="text-sm font-semibold text-text-primary">
             Trade History
           </h2>
-          <span className="text-xs text-text-muted">
-            Last {trades.length} trades
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-muted">
+              Last {trades.length} trades
+            </span>
+            <TradeExport />
+          </div>
         </div>
         <TradeHistory trades={trades} />
       </div>

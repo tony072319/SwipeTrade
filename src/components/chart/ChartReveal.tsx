@@ -224,6 +224,34 @@ export default function ChartReveal({
       newOverlaySeries.set("ema21", ema21Series);
     }
 
+    if (enabledIndicators.includes("sma50") && visibleIndicatorData?.sma50) {
+      const sma50Series = chart.addLineSeries({
+        color: "#34d399",
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      const data = visibleCandles
+        .map((c, i) => linePoint(c.time, visibleIndicatorData.sma50![i]))
+        .filter((p): p is LineData<Time> => p !== null);
+      sma50Series.setData(data);
+      newOverlaySeries.set("sma50", sma50Series);
+    }
+
+    if (enabledIndicators.includes("sma200") && visibleIndicatorData?.sma200) {
+      const sma200Series = chart.addLineSeries({
+        color: "#f87171",
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      const data = visibleCandles
+        .map((c, i) => linePoint(c.time, visibleIndicatorData.sma200![i]))
+        .filter((p): p is LineData<Time> => p !== null);
+      sma200Series.setData(data);
+      newOverlaySeries.set("sma200", sma200Series);
+    }
+
     if (enabledIndicators.includes("bollinger") && visibleIndicatorData?.bollinger) {
       const boll = visibleIndicatorData.bollinger;
       const upperSeries = chart.addLineSeries({
@@ -485,6 +513,12 @@ export default function ChartReveal({
         }
         if (hiddenIndicatorData.ema21?.[i] !== null && hiddenIndicatorData.ema21?.[i] !== undefined) {
           overlays.get("ema21")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema21[i]! });
+        }
+        if (hiddenIndicatorData.sma50?.[i] !== null && hiddenIndicatorData.sma50?.[i] !== undefined) {
+          overlays.get("sma50")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma50[i]! });
+        }
+        if (hiddenIndicatorData.sma200?.[i] !== null && hiddenIndicatorData.sma200?.[i] !== undefined) {
+          overlays.get("sma200")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma200[i]! });
         }
         if (hiddenIndicatorData.bollinger) {
           const b = hiddenIndicatorData.bollinger;

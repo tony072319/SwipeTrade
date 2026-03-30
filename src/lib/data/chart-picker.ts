@@ -8,6 +8,21 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Weight toward longer timeframes that have more reliable data
+const TIMEFRAME_WEIGHTS: Record<string, number> = {
+  "1m": 1, "5m": 2, "15m": 3, "1h": 5, "4h": 6, "1D": 8,
+};
+
+function weightedPickTimeframe(timeframes: TimeFrame[]): TimeFrame {
+  const totalWeight = timeframes.reduce((sum, tf) => sum + (TIMEFRAME_WEIGHTS[tf] ?? 1), 0);
+  let r = Math.random() * totalWeight;
+  for (const tf of timeframes) {
+    r -= TIMEFRAME_WEIGHTS[tf] ?? 1;
+    if (r <= 0) return tf;
+  }
+  return timeframes[timeframes.length - 1];
+}
+
 // Shuffle array using Fisher-Yates
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -74,7 +89,8 @@ export async function pickRandomChart(
 
   for (const asset of candidates) {
     const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
-    let timeframe = forceTimeframe ?? pickRandom(availableTimeframes);
+    // Weight toward 1D and 4h for more reliable data
+    let timeframe = forceTimeframe ?? weightedPickTimeframe(availableTimeframes);
 
     // If forced timeframe isn't available for this asset type, pick a valid one
     if (!availableTimeframes.includes(timeframe)) {
