@@ -15,7 +15,7 @@ export default function LeverageSelector({
   disabled = false,
 }: LeverageSelectorProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" role="group" aria-label="Leverage selector">
       <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Lev</span>
       <div className="flex gap-1">
         {LEVERAGE_OPTIONS.map((lev) => (
@@ -23,6 +23,8 @@ export default function LeverageSelector({
             key={lev}
             onClick={() => onChange(lev)}
             disabled={disabled}
+            aria-label={`${lev}x leverage`}
+            aria-pressed={value === lev}
             className={cn(
               "rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all",
               value === lev

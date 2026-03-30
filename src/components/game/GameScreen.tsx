@@ -395,6 +395,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
+                aria-label="Short - bet price goes down"
                 className="flex-1 rounded-xl border border-loss/20 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.98]"
               >
                 ← SHORT
@@ -402,6 +403,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               </button>
               <button
                 onClick={() => handleSwipe("long")}
+                aria-label="Long - bet price goes up"
                 className="flex-1 rounded-xl border border-profit/20 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.98]"
               >
                 LONG →

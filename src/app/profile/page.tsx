@@ -13,6 +13,8 @@ import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
 import TradeCalendar from "@/components/portfolio/TradeCalendar";
 import StreakHistory from "@/components/portfolio/StreakHistory";
+import TradingHours from "@/components/portfolio/TradingHours";
+import BestWorstDay from "@/components/portfolio/BestWorstDay";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
@@ -222,6 +224,12 @@ export default function ProfilePage() {
 
       {/* Win rate trend */}
       <WinRateChart trades={trades} />
+
+      {/* Best/worst day cards */}
+      <BestWorstDay trades={trades} />
+
+      {/* Trading hours analysis */}
+      <TradingHours trades={trades} />
 
       {/* Risk metrics */}
       <RiskMetrics trades={trades} />
