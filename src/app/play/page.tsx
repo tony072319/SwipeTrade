@@ -12,7 +12,7 @@ import { STARTING_BALANCE } from "@/lib/game/constants";
 export default function PlayPage() {
   const hydrated = useHydration();
   const { user } = useAuth();
-  const { balance, totalPnl, totalTrades, winningTrades, recordTrade } =
+  const { balance, totalPnl, totalTrades, winningTrades, currentStreak, recordTrade } =
     usePortfolioStore();
   const { chart, direction, leverage } = useGameStore();
   const [flash, setFlash] = useState<"profit" | "loss" | null>(null);
@@ -64,6 +64,7 @@ export default function PlayPage() {
         balance={currentBalance}
         totalPnl={hydrated ? totalPnl : 0}
         winRate={hydrated ? winRate : 0}
+        streak={hydrated ? currentStreak : 0}
         flash={flash}
       />
 

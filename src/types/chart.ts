@@ -24,3 +24,19 @@ export interface ChartData {
   visibleCandles: Candle[];
   hiddenCandles: Candle[];
 }
+
+export interface IndicatorData {
+  ema9?: (number | null)[];
+  ema21?: (number | null)[];
+  rsi?: (number | null)[];
+  macd?: {
+    macd: (number | null)[];
+    signal: (number | null)[];
+    histogram: (number | null)[];
+  };
+  bollinger?: {
+    upper: (number | null)[];
+    middle: (number | null)[];
+    lower: (number | null)[];
+  };
+}

@@ -96,13 +96,22 @@ export async function fetchCoinGeckoOHLCV(
 
   let candles: Candle[] = Array.from(hourlyBuckets.entries())
     .sort(([a], [b]) => a - b)
-    .map(([time, prices]) => ({
-      time,
-      open: prices[0],
-      high: Math.max(...prices),
-      low: Math.min(...prices),
-      close: prices[prices.length - 1],
-    }));
+    .map(([time, prices]) => {
+      const open = prices[0];
+      const close = prices[prices.length - 1];
+      let high = Math.max(...prices);
+      let low = Math.min(...prices);
+
+      // Synthesize slight variation for single-price-point buckets
+      // so candles don't appear as thin lines
+      if (prices.length <= 2 && high === low) {
+        const noise = open * 0.002; // 0.2% variation
+        high = open + noise;
+        low = open - noise;
+      }
+
+      return { time, open, high, low, close };
+    });
 
   if (timeframe === "4h") {
     candles = aggregateTo4h(candles);

@@ -15,6 +15,7 @@ interface PortfolioStore {
   bestTrade: number;
   worstTrade: number;
   currentStreak: number;
+  bestStreak: number;
 
   recordTrade: (trade: Omit<Trade, "id" | "createdAt">) => void;
   resetPortfolio: () => void;
@@ -32,6 +33,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
       bestTrade: 0,
       worstTrade: 0,
       currentStreak: 0,
+      bestStreak: 0,
 
       recordTrade: (trade) => {
         const newTrade: Trade = {
@@ -56,6 +58,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
             bestTrade: Math.max(state.bestTrade, trade.pnl),
             worstTrade: Math.min(state.worstTrade, trade.pnl),
             currentStreak: newStreak,
+            bestStreak: Math.max(state.bestStreak, newStreak),
           };
         });
       },
@@ -70,6 +73,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
           bestTrade: 0,
           worstTrade: 0,
           currentStreak: 0,
+          bestStreak: 0,
         }),
 
       getStats: (): UserStats => {
@@ -86,6 +90,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
           bestTrade: state.bestTrade,
           worstTrade: state.worstTrade,
           currentStreak: state.currentStreak,
+          bestStreak: state.bestStreak,
         };
       },
     }),

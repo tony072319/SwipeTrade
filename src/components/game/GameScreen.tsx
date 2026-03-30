@@ -1,14 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useChart } from "@/hooks/useChart";
 import { useHydration } from "@/hooks/useHydration";
 import { calculateTrade } from "@/lib/game/engine";
 import { BET_FRACTION } from "@/lib/game/constants";
+import { calculateEMA } from "@/lib/indicators/ema";
+import { calculateRSI } from "@/lib/indicators/rsi";
+import { calculateMACD } from "@/lib/indicators/macd";
+import { calculateBollinger } from "@/lib/indicators/bollinger";
 import type { Direction } from "@/types/trade";
-import type { Asset, TimeFrame } from "@/types/chart";
+import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
 import ChartReveal from "@/components/chart/ChartReveal";
 import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
@@ -44,12 +48,69 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const {
     selectedAsset,
     selectedTimeframe,
+    enabledIndicators,
     setSelectedAsset,
     setSelectedTimeframe,
   } = useSettingsStore();
 
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [indicatorOpen, setIndicatorOpen] = useState(false);
+
+  // Compute indicator data from all candles
+  const { visibleIndicatorData, hiddenIndicatorData } = useMemo(() => {
+    if (!chart) return { visibleIndicatorData: undefined, hiddenIndicatorData: undefined };
+
+    const allCandles = [...chart.visibleCandles, ...chart.hiddenCandles];
+    const closes = allCandles.map((c) => c.close);
+    const splitIdx = chart.visibleCandles.length;
+
+    const visible: IndicatorData = {};
+    const hidden: IndicatorData = {};
+
+    if (enabledIndicators.includes("ema9")) {
+      const full = calculateEMA(closes, 9);
+      visible.ema9 = full.slice(0, splitIdx);
+      hidden.ema9 = full.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("ema21")) {
+      const full = calculateEMA(closes, 21);
+      visible.ema21 = full.slice(0, splitIdx);
+      hidden.ema21 = full.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("rsi")) {
+      const full = calculateRSI(closes);
+      visible.rsi = full.slice(0, splitIdx);
+      hidden.rsi = full.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("macd")) {
+      const full = calculateMACD(closes);
+      visible.macd = {
+        macd: full.macd.slice(0, splitIdx),
+        signal: full.signal.slice(0, splitIdx),
+        histogram: full.histogram.slice(0, splitIdx),
+      };
+      hidden.macd = {
+        macd: full.macd.slice(splitIdx),
+        signal: full.signal.slice(splitIdx),
+        histogram: full.histogram.slice(splitIdx),
+      };
+    }
+    if (enabledIndicators.includes("bollinger")) {
+      const full = calculateBollinger(closes);
+      visible.bollinger = {
+        upper: full.upper.slice(0, splitIdx),
+        middle: full.middle.slice(0, splitIdx),
+        lower: full.lower.slice(0, splitIdx),
+      };
+      hidden.bollinger = {
+        upper: full.upper.slice(splitIdx),
+        middle: full.middle.slice(splitIdx),
+        lower: full.lower.slice(splitIdx),
+      };
+    }
+
+    return { visibleIndicatorData: visible, hiddenIndicatorData: hidden };
+  }, [chart, enabledIndicators]);
 
   // Fetch chart with current settings
   const loadChart = useCallback(() => {
@@ -104,7 +165,6 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const handleAssetSelect = useCallback(
     (asset: Asset | null) => {
       setSelectedAsset(asset);
-      // Reset timeframe if new asset type doesn't support current timeframe
       reset();
       setTimeout(() => {
         const params: { asset?: string; timeframe?: string } = {};
@@ -129,6 +189,31 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     },
     [setSelectedTimeframe, selectedAsset, reset, fetchChart],
   );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (phase === "viewing") {
+        if (e.key === "ArrowLeft" || e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          handleSwipe("short");
+        } else if (e.key === "ArrowRight" || e.key.toLowerCase() === "l") {
+          e.preventDefault();
+          handleSwipe("long");
+        }
+      } else if (phase === "result") {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [phase, handleSwipe, handleNext]);
 
   return (
     <div className="flex h-full flex-col">
@@ -188,6 +273,9 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                       ? chart.visibleCandles[chart.visibleCandles.length - 1].close
                       : undefined
                   }
+                  enabledIndicators={hydrated ? enabledIndicators : []}
+                  visibleIndicatorData={visibleIndicatorData}
+                  hiddenIndicatorData={hiddenIndicatorData}
                 />
               </div>
             </SwipeHandler>
@@ -211,9 +299,9 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               />
               <button
                 onClick={() => setIndicatorOpen(true)}
-                className="rounded-lg bg-surface-tertiary px-2.5 py-1.5 text-[10px] font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
+                className="rounded-lg bg-surface-tertiary px-3 py-2 text-xs font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
               >
-                📊 Indicators
+                Indicators
               </button>
             </div>
             <div className="flex gap-2">
@@ -247,7 +335,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
         {phase === "result" && (
           <div className="py-3 text-center">
             <p className="text-xs text-text-muted">
-              Tap &quot;Next Trade&quot; to continue
+              Tap &quot;Next Trade&quot; or press Space to continue
             </p>
           </div>
         )}

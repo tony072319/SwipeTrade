@@ -7,6 +7,7 @@ interface PortfolioBarProps {
   balance: number;
   totalPnl: number;
   winRate: number;
+  streak?: number;
   flash?: "profit" | "loss" | null;
 }
 
@@ -14,6 +15,7 @@ export default function PortfolioBar({
   balance,
   totalPnl,
   winRate,
+  streak = 0,
   flash,
 }: PortfolioBarProps) {
   return (
@@ -24,6 +26,16 @@ export default function PortfolioBar({
         </h1>
       </div>
       <div className="flex items-center gap-4">
+        {/* Streak */}
+        {streak >= 2 && (
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] uppercase tracking-wider text-text-muted">Streak</span>
+            <span className="text-xs font-bold tabular-nums text-profit">
+              {streak >= 3 ? "🔥" : ""}{streak}
+            </span>
+          </div>
+        )}
+
         {/* Win rate */}
         <div className="flex flex-col items-end">
           <span className="text-[9px] uppercase tracking-wider text-text-muted">Win</span>

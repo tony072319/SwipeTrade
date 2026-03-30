@@ -18,4 +18,5 @@ export interface UserStats {
   bestTrade: number;
   worstTrade: number;
   currentStreak: number;
+  bestStreak: number;
 }
