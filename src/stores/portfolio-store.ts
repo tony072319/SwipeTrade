@@ -50,7 +50,7 @@ export const usePortfolioStore = create<PortfolioStore>()(
 
           return {
             balance: newBalance,
-            trades: [newTrade, ...state.trades].slice(0, 100), // keep last 100
+            trades: [newTrade, ...state.trades].slice(0, 500), // keep last 500
             totalTrades: state.totalTrades + 1,
             winningTrades: state.winningTrades + (isWin ? 1 : 0),
             totalPnl:

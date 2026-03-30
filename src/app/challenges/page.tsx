@@ -382,6 +382,12 @@ export default function ChallengesPage() {
     );
   }
 
+  // Gauntlet mode — 5 rounds of increasing difficulty
+  const gauntletScenarios = SCENARIOS.filter((_, i) => i < 5);
+  const gauntletCompleted = gauntletScenarios.filter((s) => scenarioResults[s.id]).length;
+  const gauntletWins = gauntletScenarios.filter((s) => scenarioResults[s.id]?.won).length;
+  const gauntletPnl = gauntletScenarios.reduce((sum, s) => sum + (scenarioResults[s.id]?.pnl ?? 0), 0);
+
   // Scenario selection
   const completedCount = Object.keys(scenarioResults).length;
 
@@ -392,6 +398,63 @@ export default function ChallengesPage() {
         <p className="mt-0.5 text-xs text-text-muted">
           Practice specific trading situations
         </p>
+      </div>
+
+      {/* Gauntlet card */}
+      <div className="mx-4 mt-4 rounded-2xl border border-accent/20 bg-gradient-to-r from-accent/5 to-purple-500/5 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">&#x1F3AF;</span>
+          <h2 className="text-sm font-black">The Gauntlet</h2>
+          <span className="rounded-md bg-accent/10 border border-accent/20 px-1.5 py-0.5 text-[8px] font-bold text-accent">
+            5 ROUNDS
+          </span>
+        </div>
+        <p className="text-[10px] text-text-muted mb-3">
+          Complete the first 5 scenarios in order. Each gets harder. Can you profit on all 5?
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1.5">
+            {gauntletScenarios.map((s, i) => {
+              const r = scenarioResults[s.id];
+              return (
+                <div
+                  key={s.id}
+                  className={cn(
+                    "h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold border",
+                    r?.won ? "bg-profit/20 border-profit/30 text-profit" :
+                    r ? "bg-loss/20 border-loss/30 text-loss" :
+                    "bg-surface-tertiary border-border text-text-muted",
+                  )}
+                >
+                  {r?.won ? "W" : r ? "L" : i + 1}
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-text-muted">{gauntletWins}/{gauntletCompleted} wins</p>
+            {gauntletPnl !== 0 && (
+              <p className={cn("text-xs font-bold", gauntletPnl >= 0 ? "text-profit" : "text-loss")}>
+                {gauntletPnl >= 0 ? "+" : ""}{formatCurrency(gauntletPnl)}
+              </p>
+            )}
+          </div>
+        </div>
+        {gauntletCompleted < 5 && (
+          <button
+            onClick={() => startScenario(gauntletScenarios[Math.min(gauntletCompleted, 4)])}
+            className="mt-3 w-full rounded-xl bg-accent py-2.5 text-xs font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
+          >
+            {gauntletCompleted === 0 ? "Start Gauntlet" : `Continue — Round ${gauntletCompleted + 1}/5`}
+          </button>
+        )}
+        {gauntletCompleted === 5 && (
+          <div className="mt-3 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 text-center">
+            <p className="text-xs font-bold text-accent">
+              Gauntlet Complete! {gauntletWins}/5 wins ({formatCurrency(gauntletPnl)} P&L)
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Progress */}
