@@ -26,6 +26,11 @@ const DAILY_ASSETS = [
   { symbol: "BNB", type: "crypto" as const },
   { symbol: "MSFT", type: "stock" as const },
   { symbol: "XRP", type: "crypto" as const },
+  { symbol: "SPY", type: "stock" as const },
+  { symbol: "AMZN", type: "stock" as const },
+  { symbol: "META", type: "stock" as const },
+  { symbol: "AMD", type: "stock" as const },
+  { symbol: "AVAX", type: "crypto" as const },
 ];
 
 const DAILY_TIMEFRAMES = ["1h", "4h", "1D"] as const;

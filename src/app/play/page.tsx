@@ -15,6 +15,7 @@ import MotivationalMessage from "@/components/game/MotivationalMessage";
 import PortfolioMilestone from "@/components/game/PortfolioMilestone";
 import MiniRecap from "@/components/game/MiniRecap";
 import DailyGoal from "@/components/game/DailyGoal";
+import SessionTimer from "@/components/game/SessionTimer";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -173,6 +174,7 @@ export default function PlayPage() {
       <div className="relative min-h-0 flex-1">
         <GameScreen balance={currentBalance} onTrade={handleTrade} />
         <TradingTip />
+        <SessionTimer />
       </div>
     </main>
   );

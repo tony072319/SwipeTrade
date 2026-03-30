@@ -28,6 +28,12 @@ export const CRYPTO_ASSETS: Asset[] = [
   { symbol: "INJ", name: "Injective", type: "crypto", coingeckoId: "injective-protocol" },
   { symbol: "AAVE", name: "Aave", type: "crypto", coingeckoId: "aave" },
   { symbol: "MKR", name: "Maker", type: "crypto", coingeckoId: "maker" },
+  { symbol: "PEPE", name: "Pepe", type: "crypto", coingeckoId: "pepe" },
+  { symbol: "RENDER", name: "Render", type: "crypto", coingeckoId: "render-token" },
+  { symbol: "FET", name: "Fetch.ai", type: "crypto", coingeckoId: "fetch-ai" },
+  { symbol: "ALGO", name: "Algorand", type: "crypto", coingeckoId: "algorand" },
+  { symbol: "HBAR", name: "Hedera", type: "crypto", coingeckoId: "hedera-hashgraph" },
+  { symbol: "XLM", name: "Stellar", type: "crypto", coingeckoId: "stellar" },
 ];
 
 export const STOCK_ASSETS: Asset[] = [
