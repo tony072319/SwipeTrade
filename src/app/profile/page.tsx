@@ -11,6 +11,7 @@ import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
+import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -158,6 +159,9 @@ export default function ProfilePage() {
           })()}
         />
       </div>
+
+      {/* Weekly summary */}
+      <WeeklySummary trades={trades} />
 
       {/* Equity curve */}
       <EquityCurve trades={trades} />

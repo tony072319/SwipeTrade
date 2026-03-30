@@ -284,12 +284,27 @@ export default function SpeedPage() {
           >
             Play Again
           </button>
-          <Link
-            href="/play"
-            className="w-full rounded-xl border border-border py-3.5 text-center text-sm font-medium text-text-secondary transition-all hover:bg-surface-secondary"
-          >
-            Back to Free Play
-          </Link>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const text = `SwipeTrade Speed Round: ${trades.length} trades in 60s | ${totalPnl >= 0 ? "+" : ""}${formatCurrency(totalPnl)} | ${(winRate * 100).toFixed(0)}% win rate | Best combo: ${bestCombo}x`;
+                if (navigator.share) {
+                  navigator.share({ text }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(text).catch(() => {});
+                }
+              }}
+              className="flex-1 rounded-xl border border-border py-3.5 text-center text-sm font-medium text-text-secondary transition-all hover:bg-surface-secondary"
+            >
+              Share Results
+            </button>
+            <Link
+              href="/play"
+              className="flex-1 rounded-xl border border-border py-3.5 text-center text-sm font-medium text-text-secondary transition-all hover:bg-surface-secondary"
+            >
+              Free Play
+            </Link>
+          </div>
         </div>
       </main>
     );

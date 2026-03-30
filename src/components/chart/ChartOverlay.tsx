@@ -3,6 +3,7 @@
 import type { Asset, TimeFrame, Candle } from "@/types/chart";
 import { TIMEFRAME_LABELS } from "@/lib/data/assets";
 import MarketSentiment from "@/components/game/MarketSentiment";
+import PatternLabels from "@/components/game/PatternLabels";
 
 interface ChartOverlayProps {
   asset: Asset;
@@ -36,8 +37,11 @@ export default function ChartOverlay({
         </span>
       </div>
       {candles && candles.length > 10 && (
-        <div className="mt-1.5 rounded-lg bg-surface-secondary/80 px-2 py-1 backdrop-blur-sm border border-glass-border inline-flex">
-          <MarketSentiment candles={candles} />
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <div className="rounded-lg bg-surface-secondary/80 px-2 py-1 backdrop-blur-sm border border-glass-border inline-flex">
+            <MarketSentiment candles={candles} />
+          </div>
+          <PatternLabels candles={candles} />
         </div>
       )}
     </div>
