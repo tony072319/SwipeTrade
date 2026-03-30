@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Asset, TimeFrame } from "@/types/chart";
 
-export type IndicatorId = "volume" | "ema9" | "ema21" | "rsi" | "macd" | "bollinger";
+export type IndicatorId = "volume" | "ema9" | "ema21" | "vwap" | "rsi" | "macd" | "bollinger";
 
 export type AccentColor = "indigo" | "cyan" | "emerald" | "rose" | "amber" | "violet";
 
@@ -58,7 +58,7 @@ export const useSettingsStore = create<SettingsStore>()(
     (set) => ({
       selectedAsset: null,
       selectedTimeframe: null,
-      enabledIndicators: [],
+      enabledIndicators: ["volume"],
       theme: "dark",
       revealSpeed: 1,
       soundEnabled: true,

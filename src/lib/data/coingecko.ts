@@ -34,6 +34,29 @@ function aggregateTo4h(candles: Candle[]): Candle[] {
   return result;
 }
 
+async function fetchWithRetry(url: string, retries = 2): Promise<Response> {
+  let lastError: Error | null = null;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 3600 },
+      });
+      if (res.status === 429) {
+        // Rate limited — wait longer
+        await new Promise((r) => setTimeout(r, 3000 * (i + 1)));
+        continue;
+      }
+      if (!res.ok) throw new Error(`CoinGecko error: ${res.status} ${res.statusText}`);
+      return res;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (i < retries) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw lastError;
+}
+
 export async function fetchCoinGeckoOHLCV(
   coingeckoId: string,
   timeframe: TimeFrame,
@@ -49,16 +72,7 @@ export async function fetchCoinGeckoOHLCV(
   if (timeframe === "1D") {
     // Use OHLC endpoint for daily candles
     const url = `${BASE_URL}/coins/${coingeckoId}/ohlc?vs_currency=usd&days=${days}`;
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 3600 },
-    });
-
-    if (!res.ok) {
-      throw new Error(
-        `CoinGecko OHLC error: ${res.status} ${res.statusText}`,
-      );
-    }
+    const res = await fetchWithRetry(url);
 
     // Response: [[timestamp, open, high, low, close], ...]
     const data: number[][] = await res.json();
@@ -86,16 +100,7 @@ export async function fetchCoinGeckoOHLCV(
 
   // For hourly data, use market_chart endpoint and synthesize candles
   const url = `${BASE_URL}/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}`;
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 3600 },
-  });
-
-  if (!res.ok) {
-    throw new Error(
-      `CoinGecko market_chart error: ${res.status} ${res.statusText}`,
-    );
-  }
+  const res = await fetchWithRetry(url);
 
   const data: { prices: number[][] } = await res.json();
 

@@ -1,7 +1,7 @@
 {
   "name": "SwipeTrade — Chart Prediction Game",
   "short_name": "SwipeTrade",
-  "description": "Practice reading charts and making split-second Long/Short calls on real historical price data. 80+ stocks, crypto & ETFs. Trade risk-free!",
+  "description": "Practice reading charts and making split-second Long/Short calls on real historical price data. 100+ stocks, crypto & ETFs. Trade risk-free!",
   "start_url": "/play",
   "scope": "/",
   "display": "standalone",

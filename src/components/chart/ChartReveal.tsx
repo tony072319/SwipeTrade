@@ -181,6 +181,21 @@ export default function ChartReveal({
     // Add overlay indicator series (EMA, Bollinger)
     const newOverlaySeries = new Map<string, ISeriesApi<"Line">>();
 
+    if (enabledIndicators.includes("vwap") && visibleIndicatorData?.vwap) {
+      const vwapSeries = chart.addLineSeries({
+        color: "#06b6d4",
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      const data = visibleCandles
+        .map((c, i) => linePoint(c.time, visibleIndicatorData.vwap![i]))
+        .filter((p): p is LineData<Time> => p !== null);
+      vwapSeries.setData(data);
+      newOverlaySeries.set("vwap", vwapSeries);
+    }
+
     if (enabledIndicators.includes("ema9") && visibleIndicatorData?.ema9) {
       const ema9Series = chart.addLineSeries({
         color: "#fbbf24",
@@ -462,6 +477,9 @@ export default function ChartReveal({
       // Update overlay indicators
       if (hiddenIndicatorData) {
         const overlays = overlaySeriesRef.current;
+        if (hiddenIndicatorData.vwap?.[i] !== null && hiddenIndicatorData.vwap?.[i] !== undefined) {
+          overlays.get("vwap")?.update({ time: candle.time as Time, value: hiddenIndicatorData.vwap[i]! });
+        }
         if (hiddenIndicatorData.ema9?.[i] !== null && hiddenIndicatorData.ema9?.[i] !== undefined) {
           overlays.get("ema9")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema9[i]! });
         }

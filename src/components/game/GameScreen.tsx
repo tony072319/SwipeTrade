@@ -12,6 +12,7 @@ import { calculateEMA } from "@/lib/indicators/ema";
 import { calculateRSI } from "@/lib/indicators/rsi";
 import { calculateMACD } from "@/lib/indicators/macd";
 import { calculateBollinger } from "@/lib/indicators/bollinger";
+import { calculateVWAP } from "@/lib/indicators/vwap";
 import type { Direction } from "@/types/trade";
 import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
 import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
@@ -91,6 +92,14 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
       const volumes = allCandles.map((c) => c.volume ?? null);
       visible.volume = volumes.slice(0, splitIdx);
       hidden.volume = volumes.slice(splitIdx);
+    }
+    if (enabledIndicators.includes("vwap")) {
+      const highs = allCandles.map((c) => c.high);
+      const lows = allCandles.map((c) => c.low);
+      const volumes = allCandles.map((c) => c.volume ?? null);
+      const full = calculateVWAP(highs, lows, closes, volumes);
+      visible.vwap = full.slice(0, splitIdx);
+      hidden.vwap = full.slice(splitIdx);
     }
     if (enabledIndicators.includes("ema9")) {
       const full = calculateEMA(closes, 9);

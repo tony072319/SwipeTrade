@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from "react";
 
-const CURRENT_VERSION = "1.4.0";
+const CURRENT_VERSION = "1.5.0";
 
 const UPDATES = [
-  "Dark/Light Theme: Switch between dark and light modes in Settings",
-  "Activity Calendar: GitHub-style heatmap of your trading activity",
-  "Chart % Change: See price change percentage on chart overlay",
-  "Haptic Toggle: Control vibration feedback in Settings",
-  "Portfolio Milestones: Celebrations at $15k, $20k, $50k, $100k",
-  "Motivational Messages: Context-aware encouragement and tips",
-  "Trade Notes: Add personal notes to any trade in history",
-  "Risk Metrics: Sharpe Ratio, Max Drawdown, Expectancy analysis",
-  "Empty States: Better onboarding for new users on profile",
-  "Challenge Scenarios: 6 curated trading situations to practice",
+  "100+ Assets: Telecom, real estate, materials, transport & growth stocks",
+  "VWAP Indicator: Volume-weighted average price overlay",
+  "Volume Default: Volume bars now enabled by default",
+  "ETF Tab: Dedicated ETF category in asset picker",
+  "12 Challenge Scenarios: ETF, gold, healthcare, energy, DeFi & more",
+  "Data Reliability: Retry logic for Yahoo Finance & CoinGecko APIs",
+  "Better Caching: Smarter server-side caching with TTL",
+  "Keyboard Shortcuts: Arrow keys / S/L to trade, Space for next",
+  "Skip Animation: Fast-forward reveal with the Skip button",
+  "Confidence Tracking: Rate your confidence and track calibration",
 ];
 
 export default function WhatsNew() {

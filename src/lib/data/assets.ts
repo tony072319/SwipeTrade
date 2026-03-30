@@ -85,6 +85,30 @@ export const STOCK_ASSETS: Asset[] = [
   { symbol: "CVX", name: "Chevron", type: "stock" },
   { symbol: "CAT", name: "Caterpillar", type: "stock" },
   { symbol: "GE", name: "GE Aerospace", type: "stock" },
+  // Telecom & Media
+  { symbol: "T", name: "AT&T", type: "stock" },
+  { symbol: "VZ", name: "Verizon", type: "stock" },
+  { symbol: "TMUS", name: "T-Mobile", type: "stock" },
+  { symbol: "CMCSA", name: "Comcast", type: "stock" },
+  // Real Estate
+  { symbol: "AMT", name: "American Tower", type: "stock" },
+  { symbol: "O", name: "Realty Income", type: "stock" },
+  // Materials & Mining
+  { symbol: "FCX", name: "Freeport-McMoRan", type: "stock" },
+  { symbol: "NEM", name: "Newmont", type: "stock" },
+  { symbol: "LIN", name: "Linde", type: "stock" },
+  // Transport & Logistics
+  { symbol: "UPS", name: "UPS", type: "stock" },
+  { symbol: "FDX", name: "FedEx", type: "stock" },
+  { symbol: "DAL", name: "Delta Air Lines", type: "stock" },
+  { symbol: "UAL", name: "United Airlines", type: "stock" },
+  // Additional Growth / Meme
+  { symbol: "RIVN", name: "Rivian", type: "stock" },
+  { symbol: "LCID", name: "Lucid Group", type: "stock" },
+  { symbol: "SOFI", name: "SoFi", type: "stock" },
+  { symbol: "HOOD", name: "Robinhood", type: "stock" },
+  { symbol: "RBLX", name: "Roblox", type: "stock" },
+  { symbol: "U", name: "Unity Software", type: "stock" },
   // ETFs
   { symbol: "SPY", name: "S&P 500 ETF", type: "stock" },
   { symbol: "QQQ", name: "Nasdaq 100 ETF", type: "stock" },

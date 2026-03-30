@@ -29,6 +29,7 @@ export interface IndicatorData {
   volume?: (number | null)[];
   ema9?: (number | null)[];
   ema21?: (number | null)[];
+  vwap?: (number | null)[];
   rsi?: (number | null)[];
   macd?: {
     macd: (number | null)[];

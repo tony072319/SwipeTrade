@@ -12,12 +12,13 @@ interface IndicatorOption {
 }
 
 const INDICATORS: IndicatorOption[] = [
+  { id: "volume", label: "Volume", description: "Trading volume bars", color: "#64748b" },
   { id: "ema9", label: "EMA 9", description: "Fast moving average", color: "#fbbf24" },
   { id: "ema21", label: "EMA 21", description: "Slow moving average", color: "#f472b6" },
+  { id: "vwap", label: "VWAP", description: "Volume-weighted avg price", color: "#06b6d4" },
   { id: "rsi", label: "RSI", description: "Relative Strength Index", color: "#818cf8" },
   { id: "macd", label: "MACD", description: "Momentum indicator", color: "#22d3ee" },
   { id: "bollinger", label: "Bollinger", description: "Volatility bands", color: "#a78bfa" },
-  { id: "volume", label: "Volume", description: "Trading volume bars", color: "#64748b" },
 ];
 
 interface IndicatorSelectorProps {

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "SwipeTrade — Chart Prediction Trading Game",
-  description: "Practice reading charts and making split-second Long/Short calls on real historical price data. Trade crypto and stocks risk-free with $10,000!",
+  description: "Practice reading charts and making split-second Long/Short calls on real historical price data. 100+ stocks, crypto & ETFs. Trade risk-free with $10,000!",
 };
 
 const FEATURES = [
@@ -174,7 +174,7 @@ export default function Home() {
         {/* Quick stats */}
         <div className="mt-8 flex gap-6">
           <div className="text-center">
-            <p className="text-lg font-black text-text-primary">80+</p>
+            <p className="text-lg font-black text-text-primary">100+</p>
             <p className="text-[10px] text-text-muted">Assets</p>
           </div>
           <div className="text-center">

@@ -46,6 +46,19 @@ function getCacheKey(symbol: string, timeframe: TimeFrame): string {
   return `${symbol}:${timeframe}`;
 }
 
+async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+  let lastError: Error | null = null;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (i < retries) await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+  throw lastError;
+}
+
 export async function fetchYahooOHLCV(
   symbol: string,
   timeframe: TimeFrame,
@@ -65,10 +78,9 @@ export async function fetchYahooOHLCV(
   const days = LOOKBACK_DAYS[timeframe];
   const period1 = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const result = await yf.chart(symbol, {
-    period1,
-    interval,
-  });
+  const result = await fetchWithRetry(() =>
+    yf.chart(symbol, { period1, interval }),
+  );
 
   if (!result.quotes || result.quotes.length === 0) {
     throw new Error(`No data returned for ${symbol}`);
