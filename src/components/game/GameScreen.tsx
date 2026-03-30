@@ -18,6 +18,7 @@ import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
 import { cn } from "@/lib/utils";
 import { setSoundEnabled } from "@/lib/sounds";
 import ChartReveal from "@/components/chart/ChartReveal";
+import ChartSkeleton from "@/components/chart/ChartSkeleton";
 import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
 import LeverageSelector from "@/components/game/LeverageSelector";
@@ -266,14 +267,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
       {/* Chart area */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        {phase === "loading" && (
-          <div className="flex h-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-muted border-t-accent" />
-              <p className="text-sm text-text-muted">Loading chart...</p>
-            </div>
-          </div>
-        )}
+        {phase === "loading" && <ChartSkeleton />}
 
         {error && (
           <div className="flex h-full items-center justify-center">
