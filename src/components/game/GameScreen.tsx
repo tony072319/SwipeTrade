@@ -28,6 +28,7 @@ import AssetPicker from "@/components/game/AssetPicker";
 import TimeframePicker from "@/components/game/TimeframePicker";
 import IndicatorSelector from "@/components/game/IndicatorSelector";
 import BetSizeSelector from "@/components/game/BetSizeSelector";
+import { ConfidenceRating, logConfidence } from "@/components/game/ConfidenceRating";
 
 interface GameScreenProps {
   balance: number;
@@ -68,6 +69,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [indicatorOpen, setIndicatorOpen] = useState(false);
+  const [confidence, setConfidence] = useState(2);
 
   // Sync sound setting
   useEffect(() => {
@@ -184,10 +186,12 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     const tradeResult = calculateTrade({ direction, leverage, entryPrice, exitPrice, betAmount });
     setResult(tradeResult);
     onTrade(tradeResult.pnl);
-  }, [chart, direction, leverage, balance, betFraction, setResult, onTrade]);
+    logConfidence(confidence, tradeResult.isWin);
+  }, [chart, direction, leverage, balance, betFraction, confidence, setResult, onTrade]);
 
   const handleNext = useCallback(() => {
     reset();
+    setConfidence(2);
     loadChart();
   }, [reset, loadChart]);
 
@@ -387,12 +391,15 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 </button>
               </div>
             </div>
-            <BetSizeSelector
-              balance={balance}
-              betFraction={betFraction || 0.1}
-              leverage={leverage}
-              onChange={setBetFraction}
-            />
+            <div className="flex items-center justify-between">
+              <BetSizeSelector
+                balance={balance}
+                betFraction={betFraction || 0.1}
+                leverage={leverage}
+                onChange={setBetFraction}
+              />
+              <ConfidenceRating value={confidence} onRate={setConfidence} />
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}

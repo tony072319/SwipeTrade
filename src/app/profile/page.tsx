@@ -15,6 +15,7 @@ import TradeCalendar from "@/components/portfolio/TradeCalendar";
 import StreakHistory from "@/components/portfolio/StreakHistory";
 import TradingHours from "@/components/portfolio/TradingHours";
 import BestWorstDay from "@/components/portfolio/BestWorstDay";
+import { ConfidenceCalibration } from "@/components/game/ConfidenceRating";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
@@ -230,6 +231,9 @@ export default function ProfilePage() {
 
       {/* Trading hours analysis */}
       <TradingHours trades={trades} />
+
+      {/* Confidence calibration */}
+      <ConfidenceCalibration />
 
       {/* Risk metrics */}
       <RiskMetrics trades={trades} />
