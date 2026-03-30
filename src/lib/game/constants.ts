@@ -1,0 +1,9 @@
+export const STARTING_BALANCE = 10_000;
+export const BET_FRACTION = 0.1; // 10% of portfolio per trade
+export const VISIBLE_CANDLES = 50;
+export const HIDDEN_CANDLES = 20;
+export const LEVERAGE_OPTIONS = [1, 2, 3, 5, 10] as const;
+export const DEFAULT_LEVERAGE = 1;
+export const CANDLE_REVEAL_INTERVAL_MS = 250;
+export const DAILY_CHALLENGE_COUNT = 10;
+export const MIN_HISTORY_MONTHS = 6;
