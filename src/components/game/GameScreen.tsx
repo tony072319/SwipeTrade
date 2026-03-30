@@ -413,10 +413,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
         {(phase === "swiped" || phase === "revealing") && (
           <div className="flex items-center justify-center py-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+            <div className="flex items-center gap-3">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-2 w-2 rounded-full bg-accent animate-pulse"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </div>
               <p className="text-sm font-medium text-text-secondary">
-                Revealing candles...
+                {direction === "long" ? "Going Long..." : "Going Short..."}
               </p>
             </div>
           </div>

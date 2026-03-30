@@ -28,12 +28,29 @@ export default function Error({
         The market hit a circuit breaker. Let&apos;s try again.
       </p>
 
-      <button
-        onClick={reset}
-        className="mt-6 rounded-xl bg-accent px-8 py-3 text-sm font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
-      >
-        Try Again
-      </button>
+      <div className="mt-6 flex flex-col gap-3">
+        <button
+          onClick={reset}
+          className="rounded-xl bg-accent px-8 py-3 text-sm font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
+        >
+          Try Again
+        </button>
+        <button
+          onClick={() => {
+            if (confirm("This will clear all local data (portfolio, settings, achievements). Continue?")) {
+              localStorage.clear();
+              window.location.href = "/play";
+            }
+          }}
+          className="rounded-xl border border-border px-8 py-3 text-sm font-medium text-text-muted transition-all hover:bg-surface-secondary"
+        >
+          Clear Data & Restart
+        </button>
+      </div>
+
+      {error.digest && (
+        <p className="mt-4 text-[9px] text-text-muted/30 font-mono">Error ID: {error.digest}</p>
+      )}
     </main>
   );
 }
