@@ -390,6 +390,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
             <BetSizeSelector
               balance={balance}
               betFraction={betFraction || 0.1}
+              leverage={leverage}
               onChange={setBetFraction}
             />
             <div className="flex gap-2">
