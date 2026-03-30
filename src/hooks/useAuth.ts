@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export function useAuth() {
@@ -9,7 +9,16 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
 
     // Get initial session
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -30,6 +39,8 @@ export function useAuth() {
 
   const signInWithGoogle = useCallback(async () => {
     const supabase = createClient();
+    if (!supabase) return;
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -40,6 +51,8 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     const supabase = createClient();
+    if (!supabase) return;
+
     await supabase.auth.signOut();
     setUser(null);
   }, []);
