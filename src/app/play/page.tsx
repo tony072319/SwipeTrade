@@ -1,76 +1,45 @@
 "use client";
 
-import { useEffect } from "react";
-import { useChart } from "@/hooks/useChart";
-import CandlestickChart from "@/components/chart/CandlestickChart";
-import ChartOverlay from "@/components/chart/ChartOverlay";
+import { useState, useCallback } from "react";
+import GameScreen from "@/components/game/GameScreen";
+import { formatCurrency } from "@/lib/utils";
+import { STARTING_BALANCE } from "@/lib/game/constants";
+import { cn } from "@/lib/utils";
 
 export default function PlayPage() {
-  const { chart, loading, error, fetchChart } = useChart();
+  const [balance, setBalance] = useState(STARTING_BALANCE);
+  const [flash, setFlash] = useState<"profit" | "loss" | null>(null);
 
-  useEffect(() => {
-    fetchChart();
-  }, [fetchChart]);
+  const handleTrade = useCallback((pnl: number) => {
+    setBalance((prev) => Math.round((prev + pnl) * 100) / 100);
+    setFlash(pnl >= 0 ? "profit" : "loss");
+    setTimeout(() => setFlash(null), 600);
+  }, []);
 
   return (
-    <main className="flex min-h-dvh flex-col">
-      {/* Header */}
+    <main className="flex h-dvh flex-col">
+      {/* Header with portfolio */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <h1 className="text-lg font-bold">SwipeTrade</h1>
-        <span className="text-sm text-text-secondary">Practice</span>
-      </div>
-
-      {/* Chart area */}
-      <div className="relative flex-1">
-        {loading && (
-          <div className="flex h-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-muted border-t-text-primary" />
-              <p className="text-sm text-text-secondary">Loading chart...</p>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex h-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3 px-6 text-center">
-              <p className="text-sm text-loss">{error}</p>
-              <button
-                onClick={fetchChart}
-                className="rounded-lg bg-text-primary px-4 py-2 text-sm font-medium text-surface"
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
-        )}
-
-        {chart && !loading && (
-          <>
-            <ChartOverlay asset={chart.asset} timeframe={chart.timeframe} />
-            <div className="h-full px-2 pt-10 pb-4">
-              <CandlestickChart candles={chart.visibleCandles} />
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Bottom hint */}
-      {chart && !loading && (
-        <div className="border-t border-border px-4 py-4 text-center">
-          <p className="text-sm text-text-secondary">
-            Swipe right to go{" "}
-            <span className="font-semibold text-profit">Long</span> or left to
-            go <span className="font-semibold text-loss">Short</span>
-          </p>
-          <button
-            onClick={fetchChart}
-            className="mt-3 rounded-lg bg-surface-secondary px-4 py-2 text-sm font-medium text-text-primary"
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">Balance</span>
+          <span
+            className={cn(
+              "text-sm font-bold tabular-nums transition-colors duration-300",
+              flash === "profit" && "text-profit",
+              flash === "loss" && "text-loss",
+              !flash && "text-text-primary",
+            )}
           >
-            Load New Chart
-          </button>
+            {formatCurrency(balance)}
+          </span>
         </div>
-      )}
+      </div>
+
+      {/* Game area */}
+      <div className="flex-1 overflow-hidden">
+        <GameScreen balance={balance} onTrade={handleTrade} />
+      </div>
     </main>
   );
 }
