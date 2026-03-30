@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -153,7 +153,250 @@ const CATEGORIES = [
   { key: "psychology" as const, label: "Psychology" },
 ];
 
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+}
+
+const QUIZ_QUESTIONS: QuizQuestion[] = [
+  {
+    question: "A green candlestick means:",
+    options: ["Price went down", "Price went up", "Market is closed", "High volume"],
+    correct: 1,
+    explanation: "A green (bullish) candle means the close price was higher than the open — the price went up during that period.",
+  },
+  {
+    question: "RSI above 70 typically indicates:",
+    options: ["Oversold conditions", "Overbought conditions", "Low volatility", "Strong support"],
+    correct: 1,
+    explanation: "RSI above 70 suggests the asset may be overbought and could be due for a pullback, though in strong trends it can stay elevated.",
+  },
+  {
+    question: "What defines an uptrend?",
+    options: ["Lower lows", "Higher highs and higher lows", "Flat price action", "Decreasing volume"],
+    correct: 1,
+    explanation: "An uptrend is defined by a series of higher highs and higher lows — each swing reaches a new high and doesn't fall as far.",
+  },
+  {
+    question: "A Doji candle indicates:",
+    options: ["Strong buying", "Strong selling", "Indecision", "Breakout"],
+    correct: 2,
+    explanation: "A Doji has nearly equal open and close prices, showing that neither buyers nor sellers dominated the period.",
+  },
+  {
+    question: "When the MACD line crosses above the signal line, it's a:",
+    options: ["Bearish signal", "Neutral signal", "Bullish signal", "Volume signal"],
+    correct: 2,
+    explanation: "A MACD crossover above the signal line is considered bullish, suggesting upward momentum is building.",
+  },
+  {
+    question: "What is a Bullish Engulfing pattern?",
+    options: [
+      "A large red candle after a green candle",
+      "A large green candle that engulfs the previous red candle",
+      "Two red candles of equal size",
+      "A candle with no wick",
+    ],
+    correct: 1,
+    explanation: "A Bullish Engulfing occurs when a green candle completely covers the previous red candle, signaling potential reversal.",
+  },
+  {
+    question: "In risk management, the standard risk per trade is:",
+    options: ["10-20% of portfolio", "1-2% of portfolio", "50% of portfolio", "All of it"],
+    correct: 1,
+    explanation: "Professional traders typically risk 1-2% of their portfolio per trade to survive losing streaks and protect capital.",
+  },
+  {
+    question: "Old support levels can become:",
+    options: ["Irrelevant", "New resistance", "Wider candles", "Higher volume"],
+    correct: 1,
+    explanation: "When price breaks below support, that level often becomes resistance. This role reversal is a key principle of technical analysis.",
+  },
+  {
+    question: "What is 'revenge trading'?",
+    options: [
+      "Trading a rival's stock",
+      "Making emotional trades after losses to recover quickly",
+      "A profitable strategy",
+      "Trading the same asset twice",
+    ],
+    correct: 1,
+    explanation: "Revenge trading is making impulsive, oversized trades to recover losses — it usually leads to bigger losses.",
+  },
+  {
+    question: "Bollinger Bands tightening (squeezing) suggests:",
+    options: ["Trend is over", "Low volatility, potential breakout", "High volatility", "Support level"],
+    correct: 1,
+    explanation: "When Bollinger Bands squeeze, volatility is low. This often precedes a significant move in either direction.",
+  },
+];
+
 type Category = "all" | Lesson["category"];
+
+function TradingQuiz() {
+  const [started, setStarted] = useState(false);
+  const [currentQ, setCurrentQ] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  const question = QUIZ_QUESTIONS[currentQ];
+
+  const handleSelect = useCallback(
+    (idx: number) => {
+      if (selected !== null) return;
+      setSelected(idx);
+      if (idx === question.correct) {
+        setScore((s) => s + 1);
+      }
+      setShowResult(true);
+    },
+    [selected, question.correct],
+  );
+
+  const handleNext = useCallback(() => {
+    if (currentQ < QUIZ_QUESTIONS.length - 1) {
+      setCurrentQ((q) => q + 1);
+      setSelected(null);
+      setShowResult(false);
+    } else {
+      setFinished(true);
+    }
+  }, [currentQ]);
+
+  const handleRestart = useCallback(() => {
+    setCurrentQ(0);
+    setSelected(null);
+    setScore(0);
+    setShowResult(false);
+    setFinished(false);
+  }, []);
+
+  if (!started) {
+    return (
+      <div className="mx-4 mt-6 rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/5 to-purple-500/5 p-5 text-center">
+        <h2 className="text-lg font-black">Trading Quiz</h2>
+        <p className="mt-1 text-xs text-text-muted">
+          Test your trading knowledge with {QUIZ_QUESTIONS.length} questions
+        </p>
+        <button
+          onClick={() => setStarted(true)}
+          className="mt-3 rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
+        >
+          Start Quiz
+        </button>
+      </div>
+    );
+  }
+
+  if (finished) {
+    const percentage = Math.round((score / QUIZ_QUESTIONS.length) * 100);
+    const grade =
+      percentage >= 90
+        ? { label: "Expert", color: "text-profit" }
+        : percentage >= 70
+          ? { label: "Advanced", color: "text-accent" }
+          : percentage >= 50
+            ? { label: "Intermediate", color: "text-yellow-500" }
+            : { label: "Beginner", color: "text-loss" };
+
+    return (
+      <div className="mx-4 mt-6 rounded-2xl border border-border bg-surface-secondary p-5 text-center animate-scale-in">
+        <h2 className="text-lg font-black">Quiz Complete!</h2>
+        <div className="mt-3">
+          <p className="text-4xl font-black tabular-nums">
+            {score}/{QUIZ_QUESTIONS.length}
+          </p>
+          <p className={cn("text-sm font-bold mt-1", grade.color)}>
+            {grade.label} ({percentage}%)
+          </p>
+        </div>
+        <div className="mt-4 flex gap-2 justify-center">
+          <button
+            onClick={handleRestart}
+            className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-accent/90"
+          >
+            Try Again
+          </button>
+          <Link
+            href="/play"
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-surface-tertiary"
+          >
+            Practice
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-4 mt-6 rounded-2xl border border-border bg-surface-secondary p-5">
+      {/* Progress */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-bold text-text-muted">
+          Question {currentQ + 1}/{QUIZ_QUESTIONS.length}
+        </span>
+        <span className="text-[10px] font-bold text-accent">
+          Score: {score}
+        </span>
+      </div>
+      <div className="h-1 rounded-full bg-surface-tertiary mb-4">
+        <div
+          className="h-full rounded-full bg-accent transition-all"
+          style={{ width: `${((currentQ + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Question */}
+      <p className="text-sm font-bold mb-3">{question.question}</p>
+
+      {/* Options */}
+      <div className="space-y-2">
+        {question.options.map((opt, i) => {
+          const isCorrect = i === question.correct;
+          const isSelected = i === selected;
+          return (
+            <button
+              key={i}
+              onClick={() => handleSelect(i)}
+              disabled={selected !== null}
+              className={cn(
+                "w-full rounded-xl border px-4 py-3 text-left text-xs font-medium transition-all",
+                selected === null && "border-border hover:bg-surface-tertiary hover:border-text-muted/30",
+                showResult && isCorrect && "border-profit bg-profit/10 text-profit",
+                showResult && isSelected && !isCorrect && "border-loss bg-loss/10 text-loss",
+                showResult && !isSelected && !isCorrect && "border-border opacity-40",
+              )}
+            >
+              <span className="mr-2 inline-block w-4 text-center font-bold text-text-muted">
+                {String.fromCharCode(65 + i)}
+              </span>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Explanation */}
+      {showResult && (
+        <div className="mt-3 rounded-lg bg-surface-tertiary p-3 animate-fade-in">
+          <p className="text-xs text-text-secondary leading-relaxed">
+            {question.explanation}
+          </p>
+          <button
+            onClick={handleNext}
+            className="mt-2 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white transition-all hover:bg-accent/90"
+          >
+            {currentQ < QUIZ_QUESTIONS.length - 1 ? "Next Question" : "See Results"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function LearnPage() {
   const [category, setCategory] = useState<Category>("all");
@@ -243,6 +486,9 @@ export default function LearnPage() {
           );
         })}
       </div>
+
+      {/* Trading Quiz */}
+      <TradingQuiz />
 
       {/* CTA */}
       <div className="px-4 mt-6 text-center">

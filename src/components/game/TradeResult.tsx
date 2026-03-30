@@ -186,6 +186,15 @@ export default function TradeResult({
               {formatCurrency(result.betAmount)}
             </span>
           </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-text-muted">Price Move</span>
+            <span className={cn(
+              "font-mono font-medium",
+              result.pnlPercent >= 0 ? "text-profit" : "text-loss",
+            )}>
+              {result.pnlPercent >= 0 ? "+" : ""}{(((result.exitPrice - result.entryPrice) / result.entryPrice) * 100).toFixed(2)}%
+            </span>
+          </div>
           <div className="border-t border-border pt-2 flex justify-between text-sm">
             <span className="text-text-muted">Balance</span>
             <span className="font-mono font-bold text-text-primary">

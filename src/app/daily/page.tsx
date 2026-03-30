@@ -80,19 +80,29 @@ export default function DailyPage() {
   const isCompletedToday = hydrated && currentDate === today && completed;
   const isInProgress = hydrated && currentDate === today && !completed && currentIndex > 0;
 
-  // Get the asset/timeframe for current round
+  // Get the asset/timeframe for current round with progressive difficulty
   const roundConfig = useMemo(() => {
     if (!hydrated) return null;
     const idx = currentIndex;
     const hash = dateHash(today, idx);
     const asset = DAILY_ASSETS[hash % DAILY_ASSETS.length];
     const tf = DAILY_TIMEFRAMES[hash % DAILY_TIMEFRAMES.length];
-    return { asset: asset.symbol, timeframe: tf };
+
+    // Progressive difficulty: fewer visible candles, more hidden as rounds advance
+    const visible = Math.max(30, 50 - idx * 3); // 50 → 35 over 5 rounds
+    const hidden = Math.min(30, 15 + idx * 2);   // 15 → 25 over 5 rounds
+
+    return { asset: asset.symbol, timeframe: tf, visible, hidden };
   }, [hydrated, currentIndex, today]);
 
   const loadRound = useCallback(() => {
     if (!roundConfig) return;
-    fetchChart({ asset: roundConfig.asset, timeframe: roundConfig.timeframe });
+    fetchChart({
+      asset: roundConfig.asset,
+      timeframe: roundConfig.timeframe,
+      visible: roundConfig.visible,
+      hidden: roundConfig.hidden,
+    });
   }, [fetchChart, roundConfig]);
 
   // Start or resume daily
@@ -158,6 +168,31 @@ export default function DailyPage() {
     reset();
     // Will trigger loadRound via effect
   }, [currentIndex, completeDaily, reset]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (phase === "viewing") {
+        if (e.key === "ArrowLeft" || e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          handleSwipe("short");
+        } else if (e.key === "ArrowRight" || e.key.toLowerCase() === "l") {
+          e.preventDefault();
+          handleSwipe("long");
+        }
+      } else if (phase === "result") {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [phase, handleSwipe, handleNext]);
 
   // Auto-resume if in progress
   useEffect(() => {
@@ -324,6 +359,7 @@ export default function DailyPage() {
             <span className="text-[9px] uppercase tracking-wider text-text-muted">Round</span>
             <span className="text-xs font-bold tabular-nums">
               {Math.min(currentIndex + 1, DAILY_CHALLENGE_COUNT)}/{DAILY_CHALLENGE_COUNT}
+              {currentIndex >= 3 && <span className="ml-1 text-[8px] text-loss">HARD</span>}
             </span>
           </div>
           <div className="flex flex-col items-end">

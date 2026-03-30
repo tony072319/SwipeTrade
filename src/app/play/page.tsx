@@ -10,6 +10,7 @@ import KeyboardHelp from "@/components/game/KeyboardHelp";
 import TradingTip from "@/components/game/TradingTip";
 import StreakMilestone from "@/components/game/StreakMilestone";
 import QuickStats from "@/components/portfolio/QuickStats";
+import SessionSummary from "@/components/game/SessionSummary";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -132,6 +133,9 @@ export default function PlayPage() {
 
       {/* Streak milestone celebrations */}
       <StreakMilestone streak={currentStreak} previousStreak={prevStreakRef.current} />
+
+      {/* Session summary for returning users */}
+      <SessionSummary />
 
       {/* Keyboard shortcuts help */}
       <KeyboardHelp />
