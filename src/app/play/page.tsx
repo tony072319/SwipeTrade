@@ -13,6 +13,7 @@ import QuickStats from "@/components/portfolio/QuickStats";
 import SessionSummary from "@/components/game/SessionSummary";
 import MotivationalMessage from "@/components/game/MotivationalMessage";
 import PortfolioMilestone from "@/components/game/PortfolioMilestone";
+import MiniRecap from "@/components/game/MiniRecap";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -141,6 +142,9 @@ export default function PlayPage() {
 
       {/* Portfolio milestone celebrations */}
       <PortfolioMilestone />
+
+      {/* Mini recap every 10 trades */}
+      <MiniRecap />
 
       {/* Keyboard shortcuts help */}
       <KeyboardHelp />

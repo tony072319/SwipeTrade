@@ -12,6 +12,7 @@ import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
 import TradeCalendar from "@/components/portfolio/TradeCalendar";
+import StreakHistory from "@/components/portfolio/StreakHistory";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
@@ -206,6 +207,9 @@ export default function ProfilePage() {
           })()}
         />
       </div>
+
+      {/* Recent results strip */}
+      <StreakHistory trades={trades} />
 
       {/* Trade activity calendar */}
       <TradeCalendar trades={trades} />

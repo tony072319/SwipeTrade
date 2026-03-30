@@ -57,7 +57,7 @@ export default function TradeResult({
     if (result.isWin) playWinSound();
     else playLossSound();
     return () => clearTimeout(t);
-  }, [result.isWin]);
+  }, [result.isWin, hapticEnabled]);
 
   useEffect(() => {
     const duration = 500;

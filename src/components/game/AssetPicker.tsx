@@ -42,6 +42,13 @@ export default function AssetPicker({
     [recentAssets],
   );
 
+  const favoriteAssetObjects = useMemo(
+    () => favoriteAssets
+      .map((s) => ALL_ASSETS.find((a) => a.symbol === s))
+      .filter(Boolean) as Asset[],
+    [favoriteAssets],
+  );
+
   const handleSelect = (asset: Asset | null) => {
     if (asset) addRecentAsset(asset.symbol);
     onSelect(asset);
@@ -52,6 +59,7 @@ export default function AssetPicker({
   if (!open) return null;
 
   const showRecent = !search && tab === "all" && recentAssetObjects.length > 0;
+  const showFavorites = !search && tab === "all" && favoriteAssetObjects.length > 0;
 
   return (
     <>
@@ -116,6 +124,29 @@ export default function AssetPicker({
         </div>
 
         <div className="max-h-64 overflow-y-auto px-4 pb-6">
+          {/* Favorite assets */}
+          {showFavorites && (
+            <div className="mb-3">
+              <p className="text-[10px] font-bold uppercase text-text-muted mb-1.5">Favorites</p>
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {favoriteAssetObjects.map((asset) => (
+                  <button
+                    key={`fav-${asset.symbol}`}
+                    onClick={() => handleSelect(asset)}
+                    className={cn(
+                      "shrink-0 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all",
+                      selectedAsset?.symbol === asset.symbol
+                        ? "border-accent/30 bg-accent-bg text-accent"
+                        : "border-yellow-500/20 bg-yellow-500/5 text-text-secondary hover:border-yellow-500/40",
+                    )}
+                  >
+                    ★ {asset.symbol}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Recent assets */}
           {showRecent && (
             <div className="mb-3">

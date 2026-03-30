@@ -4,6 +4,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import ClientProviders from "@/components/layout/ClientProviders";
 import InstallPrompt from "@/components/layout/InstallPrompt";
 import WhatsNew from "@/components/layout/WhatsNew";
+import LandscapeWarning from "@/components/layout/LandscapeWarning";
 
 export const metadata: Metadata = {
   title: {
@@ -58,6 +59,7 @@ export default function RootLayout({
           <BottomNav />
           <InstallPrompt />
           <WhatsNew />
+          <LandscapeWarning />
         </ClientProviders>
       </body>
     </html>
