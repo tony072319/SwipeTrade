@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import TradeHistory from "@/components/portfolio/TradeHistory";
 import EquityCurve from "@/components/portfolio/EquityCurve";
 import PerformanceBreakdown from "@/components/portfolio/PerformanceBreakdown";
+import AchievementsGrid from "@/components/portfolio/AchievementsGrid";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -127,6 +128,9 @@ export default function ProfilePage() {
 
       {/* Performance by asset */}
       <PerformanceBreakdown trades={trades} />
+
+      {/* Achievements */}
+      <AchievementsGrid />
 
       {/* Trade history */}
       <div className="mt-6">
