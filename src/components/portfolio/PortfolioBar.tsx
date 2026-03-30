@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import MarketStatus from "@/components/layout/MarketStatus";
 
 interface PortfolioBarProps {
   balance: number;
@@ -39,6 +40,7 @@ export default function PortfolioBar({
           SwipeTrade
         </h1>
         <span className="text-[9px] text-text-muted">{greeting}</span>
+        <MarketStatus />
       </div>
       <div className="flex items-center gap-4">
         {/* Streak */}
