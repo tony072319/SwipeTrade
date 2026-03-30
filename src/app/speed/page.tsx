@@ -18,6 +18,7 @@ interface SpeedResult {
   direction: Direction;
   pnl: number;
   asset: string;
+  combo: number;
 }
 
 export default function SpeedPage() {
@@ -41,6 +42,8 @@ export default function SpeedPage() {
   const [totalPnl, setTotalPnl] = useState(0);
   const [trades, setTrades] = useState<SpeedResult[]>([]);
   const [roundCount, setRoundCount] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [bestCombo, setBestCombo] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Timer
@@ -90,6 +93,8 @@ export default function SpeedPage() {
     setTotalPnl(0);
     setTrades([]);
     setRoundCount(0);
+    setCombo(0);
+    setBestCombo(0);
     reset();
     fetchChart();
   }, [reset, fetchChart]);
@@ -107,10 +112,19 @@ export default function SpeedPage() {
     const entryPrice = chart.visibleCandles[chart.visibleCandles.length - 1].close;
     const exitPrice = chart.hiddenCandles[chart.hiddenCandles.length - 1].close;
     const tradeResult = calculateTrade({ direction, leverage: 1, entryPrice, exitPrice, betAmount: BET_AMOUNT });
-    setResult(tradeResult);
 
-    setTotalPnl((p) => Math.round((p + tradeResult.pnl) * 100) / 100);
-    setTrades((t) => [...t, { direction, pnl: tradeResult.pnl, asset: chart.asset.symbol }]);
+    // Combo multiplier: 1x, 1.5x, 2x, 2.5x... for consecutive wins
+    const isWin = tradeResult.pnl > 0;
+    const currentCombo = isWin ? combo + 1 : 0;
+    const multiplier = isWin && combo >= 1 ? 1 + combo * 0.5 : 1;
+    const adjustedPnl = Math.round(tradeResult.pnl * multiplier * 100) / 100;
+
+    setResult({ ...tradeResult, pnl: adjustedPnl });
+    setCombo(currentCombo);
+    if (currentCombo > bestCombo) setBestCombo(currentCombo);
+
+    setTotalPnl((p) => Math.round((p + adjustedPnl) * 100) / 100);
+    setTrades((t) => [...t, { direction, pnl: adjustedPnl, asset: chart.asset.symbol, combo: currentCombo }]);
     setRoundCount((c) => c + 1);
 
     // Auto-advance after brief pause
@@ -120,7 +134,7 @@ export default function SpeedPage() {
         fetchChart();
       }
     }, 800);
-  }, [chart, direction, gameState, setResult, reset, fetchChart]);
+  }, [chart, direction, gameState, combo, bestCombo, setResult, reset, fetchChart]);
 
   // Keyboard support
   useEffect(() => {
@@ -208,7 +222,7 @@ export default function SpeedPage() {
           </p>
         </div>
 
-        <div className="mx-4 mt-4 grid grid-cols-3 gap-3">
+        <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-border bg-surface-secondary p-3 text-center">
             <p className="text-[9px] uppercase text-text-muted">Trades</p>
             <p className="text-lg font-bold">{trades.length}</p>
@@ -224,6 +238,10 @@ export default function SpeedPage() {
             <p className={cn("text-lg font-bold tabular-nums", totalPnl >= 0 ? "text-profit" : "text-loss")}>
               {trades.length > 0 ? `${totalPnl / trades.length >= 0 ? "+" : ""}${formatCurrency(totalPnl / trades.length)}` : "$0"}
             </p>
+          </div>
+          <div className="rounded-xl border border-border bg-surface-secondary p-3 text-center">
+            <p className="text-[9px] uppercase text-text-muted">Best Combo</p>
+            <p className="text-lg font-bold text-accent">{bestCombo}x</p>
           </div>
         </div>
 
@@ -243,12 +261,17 @@ export default function SpeedPage() {
                     {t.direction}
                   </span>
                 </div>
-                <span className={cn(
-                  "text-xs font-semibold tabular-nums",
-                  t.pnl >= 0 ? "text-profit" : "text-loss",
-                )}>
-                  {t.pnl >= 0 ? "+" : ""}{formatCurrency(t.pnl)}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {t.combo >= 2 && (
+                    <span className="text-[9px] font-bold text-accent">{t.combo}x</span>
+                  )}
+                  <span className={cn(
+                    "text-xs font-semibold tabular-nums",
+                    t.pnl >= 0 ? "text-profit" : "text-loss",
+                  )}>
+                    {t.pnl >= 0 ? "+" : ""}{formatCurrency(t.pnl)}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -291,14 +314,24 @@ export default function SpeedPage() {
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[9px] uppercase tracking-wider text-text-muted">P&L</p>
-          <p className={cn(
-            "text-sm font-bold tabular-nums",
-            totalPnl >= 0 ? "text-profit" : "text-loss",
-          )}>
-            {totalPnl >= 0 ? "+" : ""}{formatCurrency(totalPnl)}
-          </p>
+        <div className="flex items-center gap-3">
+          {combo >= 2 && (
+            <div className="text-right">
+              <p className="text-[9px] uppercase tracking-wider text-text-muted">Combo</p>
+              <p className="text-sm font-black text-accent animate-pulse tabular-nums">
+                {combo}x {(1 + (combo - 1) * 0.5).toFixed(1)}x
+              </p>
+            </div>
+          )}
+          <div className="text-right">
+            <p className="text-[9px] uppercase tracking-wider text-text-muted">P&L</p>
+            <p className={cn(
+              "text-sm font-bold tabular-nums",
+              totalPnl >= 0 ? "text-profit" : "text-loss",
+            )}>
+              {totalPnl >= 0 ? "+" : ""}{formatCurrency(totalPnl)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -344,7 +377,7 @@ export default function SpeedPage() {
         {phase === "result" && result && (
           <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
             <div className={cn(
-              "rounded-2xl px-8 py-4 animate-scale-in",
+              "rounded-2xl px-8 py-4 animate-scale-in text-center",
               result.isWin ? "bg-profit/20 border border-profit/30" : "bg-loss/20 border border-loss/30",
             )}>
               <p className={cn(
@@ -353,6 +386,11 @@ export default function SpeedPage() {
               )}>
                 {result.pnl >= 0 ? "+" : ""}{formatCurrency(result.pnl)}
               </p>
+              {combo >= 2 && result.isWin && (
+                <p className="text-sm font-black text-accent mt-1 animate-bounce-in">
+                  COMBO x{combo}!
+                </p>
+              )}
             </div>
           </div>
         )}

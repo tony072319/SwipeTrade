@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from "react";
 
-const CURRENT_VERSION = "1.2.0";
+const CURRENT_VERSION = "1.3.0";
 
 const UPDATES = [
-  "Speed Round: 60-second rapid fire trading challenge",
-  "Achievements: 25+ unlockable badges and milestones",
-  "Learn: Trading lessons on patterns, indicators, and psychology",
-  "Bet sizing: Choose your risk (5%, 10%, 25%, 50%)",
-  "Difficulty: Easy/Normal/Hard with different chart lengths",
-  "Asset picker: Search, favorites, and 30 total assets",
-  "P&L distribution chart and win rate trend",
-  "Export/import your data as JSON backup",
-  "Accent color customization (6 colors)",
-  "Keyboard shortcuts (press ? for help)",
+  "Trading Quiz: 10-question test on Learn page",
+  "Market Sentiment: Bullish/Bearish/Neutral indicator on charts",
+  "Streak Milestones: Special celebrations at 3, 5, 7, 10+ wins",
+  "Trade Details: Tap trades in history for full breakdown",
+  "Session Recap: See your last session stats when you return",
+  "Quick Stats: Tap balance in play mode for instant overview",
+  "Performance Breakdown: Analyze by asset, timeframe, or direction",
+  "Daily Challenge: Progressive difficulty (rounds get harder)",
+  "Improved Swipe: Better visual feedback with arrows",
+  "Accessibility: Reduced motion support, keyboard focus styles",
 ];
 
 export default function WhatsNew() {
