@@ -6,6 +6,11 @@ import { CRYPTO_ASSETS, STOCK_ASSETS, ALL_ASSETS } from "@/lib/data/assets";
 import { useSettingsStore } from "@/stores/settings-store";
 import { cn } from "@/lib/utils";
 
+// ETF symbols for sub-filtering
+const ETF_SYMBOLS = new Set(["SPY", "QQQ", "IWM", "DIA", "ARKK", "XLF", "XLE", "GLD", "TLT"]);
+const ETF_ASSETS = STOCK_ASSETS.filter((a) => ETF_SYMBOLS.has(a.symbol));
+const PURE_STOCK_ASSETS = STOCK_ASSETS.filter((a) => !ETF_SYMBOLS.has(a.symbol));
+
 interface AssetPickerProps {
   open: boolean;
   onClose: () => void;
@@ -19,11 +24,11 @@ export default function AssetPicker({
   onSelect,
   selectedAsset,
 }: AssetPickerProps) {
-  const [tab, setTab] = useState<"all" | "crypto" | "stocks">("all");
+  const [tab, setTab] = useState<"all" | "crypto" | "stocks" | "etfs">("all");
   const [search, setSearch] = useState("");
   const { recentAssets, favoriteAssets, addRecentAsset, toggleFavorite } = useSettingsStore();
 
-  const baseAssets = tab === "crypto" ? CRYPTO_ASSETS : tab === "stocks" ? STOCK_ASSETS : ALL_ASSETS;
+  const baseAssets = tab === "crypto" ? CRYPTO_ASSETS : tab === "stocks" ? PURE_STOCK_ASSETS : tab === "etfs" ? ETF_ASSETS : ALL_ASSETS;
 
   const assets = useMemo(() => {
     if (!search.trim()) return baseAssets;
@@ -102,11 +107,12 @@ export default function AssetPicker({
         </button>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-4 pb-3">
+        <div className="flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
           {[
             { key: "all" as const, label: `All (${ALL_ASSETS.length})` },
             { key: "crypto" as const, label: `Crypto (${CRYPTO_ASSETS.length})` },
-            { key: "stocks" as const, label: `Stocks (${STOCK_ASSETS.length})` },
+            { key: "stocks" as const, label: `Stocks (${PURE_STOCK_ASSETS.length})` },
+            { key: "etfs" as const, label: `ETFs (${ETF_ASSETS.length})` },
           ].map((t) => (
             <button
               key={t.key}
@@ -123,7 +129,7 @@ export default function AssetPicker({
           ))}
         </div>
 
-        <div className="max-h-64 overflow-y-auto px-4 pb-6">
+        <div className="max-h-72 overflow-y-auto px-4 pb-6">
           {/* Favorite assets */}
           {showFavorites && (
             <div className="mb-3">
