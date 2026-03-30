@@ -14,6 +14,10 @@ const DAYS_MAP: Record<TimeFrame, number> = {
   "1D": 365,
 };
 
+// In-memory cache for CoinGecko data
+const candleCache = new Map<string, { data: Candle[]; timestamp: number }>();
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes (CoinGecko has rate limits)
+
 function aggregateTo4h(candles: Candle[]): Candle[] {
   const result: Candle[] = [];
   for (let i = 0; i < candles.length; i += 4) {
@@ -34,6 +38,12 @@ export async function fetchCoinGeckoOHLCV(
   coingeckoId: string,
   timeframe: TimeFrame,
 ): Promise<Candle[]> {
+  const cacheKey = `${coingeckoId}:${timeframe}`;
+  const cached = candleCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
+  }
+
   const days = DAYS_MAP[timeframe];
 
   if (timeframe === "1D") {
@@ -53,13 +63,25 @@ export async function fetchCoinGeckoOHLCV(
     // Response: [[timestamp, open, high, low, close], ...]
     const data: number[][] = await res.json();
 
-    return data.map(([timestamp, open, high, low, close]) => ({
-      time: Math.floor(timestamp / 1000),
-      open,
-      high,
-      low,
-      close,
-    }));
+    if (!data || data.length === 0) {
+      throw new Error(`No OHLC data for ${coingeckoId}`);
+    }
+
+    const candles = data
+      .filter((row) => row.length >= 5 && row.every((v) => v > 0))
+      .map(([timestamp, open, high, low, close]) => ({
+        time: Math.floor(timestamp / 1000),
+        open,
+        high,
+        low,
+        close,
+      }));
+
+    if (candles.length > 0) {
+      candleCache.set(cacheKey, { data: candles, timestamp: Date.now() });
+    }
+
+    return candles;
   }
 
   // For hourly data, use market_chart endpoint and synthesize candles
@@ -85,6 +107,7 @@ export async function fetchCoinGeckoOHLCV(
   // Group prices by hour
   const hourlyBuckets = new Map<number, number[]>();
   for (const [timestamp, price] of data.prices) {
+    if (price <= 0) continue; // skip invalid prices
     const hourKey = Math.floor(timestamp / 3600000) * 3600; // round to hour in seconds
     const bucket = hourlyBuckets.get(hourKey);
     if (bucket) {
@@ -115,6 +138,10 @@ export async function fetchCoinGeckoOHLCV(
 
   if (timeframe === "4h") {
     candles = aggregateTo4h(candles);
+  }
+
+  if (candles.length > 0) {
+    candleCache.set(cacheKey, { data: candles, timestamp: Date.now() });
   }
 
   return candles;

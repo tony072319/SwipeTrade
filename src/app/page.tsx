@@ -174,7 +174,7 @@ export default function Home() {
         {/* Quick stats */}
         <div className="mt-8 flex gap-6">
           <div className="text-center">
-            <p className="text-lg font-black text-text-primary">30</p>
+            <p className="text-lg font-black text-text-primary">80+</p>
             <p className="text-[10px] text-text-muted">Assets</p>
           </div>
           <div className="text-center">

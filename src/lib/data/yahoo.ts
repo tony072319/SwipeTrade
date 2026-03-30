@@ -11,14 +11,14 @@ const INTERVAL_MAP: Record<TimeFrame, YahooInterval> = {
   "1D": "1d",
 };
 
-// How far back to look for each timeframe
+// Increased lookback for more data availability
 const LOOKBACK_DAYS: Record<TimeFrame, number> = {
-  "1m": 5,
-  "5m": 55,
-  "15m": 55,
-  "1h": 55,
-  "4h": 55,
-  "1D": 730, // 2 years
+  "1m": 7,       // Yahoo allows up to 7 days for 1m
+  "5m": 60,      // ~2 months
+  "15m": 60,
+  "1h": 120,     // ~4 months
+  "4h": 120,
+  "1D": 730,     // 2 years
 };
 
 function aggregateTo4h(candles: Candle[]): Candle[] {
@@ -38,10 +38,25 @@ function aggregateTo4h(candles: Candle[]): Candle[] {
   return result;
 }
 
+// Simple in-memory cache to reduce API calls and improve consistency
+const candleCache = new Map<string, { data: Candle[]; timestamp: number }>();
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function getCacheKey(symbol: string, timeframe: TimeFrame): string {
+  return `${symbol}:${timeframe}`;
+}
+
 export async function fetchYahooOHLCV(
   symbol: string,
   timeframe: TimeFrame,
 ): Promise<Candle[]> {
+  // Check cache first
+  const cacheKey = getCacheKey(symbol, timeframe);
+  const cached = candleCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
+  }
+
   // yahoo-finance2 v3 requires `new YahooFinance()` constructor
   const YahooFinance = (await import("yahoo-finance2")).default;
   const yf = new YahooFinance();
@@ -77,8 +92,26 @@ export async function fetchYahooOHLCV(
       volume: q.volume ?? undefined,
     }));
 
+  // Filter out candles with zero or negative values
+  candles = candles.filter(
+    (c) => c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0,
+  );
+
+  // Remove duplicates by timestamp
+  const seen = new Set<number>();
+  candles = candles.filter((c) => {
+    if (seen.has(c.time)) return false;
+    seen.add(c.time);
+    return true;
+  });
+
   if (timeframe === "4h") {
     candles = aggregateTo4h(candles);
+  }
+
+  // Cache the result
+  if (candles.length > 0) {
+    candleCache.set(cacheKey, { data: candles, timestamp: Date.now() });
   }
 
   return candles;

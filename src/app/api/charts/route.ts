@@ -46,10 +46,12 @@ export async function GET(request: Request) {
         const chart = await pickChartForAssetAndTimeframe(asset, pickRandom(tfs), visible, hidden);
         return NextResponse.json(chart);
       } else if (timeframe) {
+        // pickRandomChart now handles multi-asset fallback internally
         const chart = await pickRandomChart(undefined, timeframe, visible, hidden);
         return NextResponse.json(chart);
       }
 
+      // Fully random — pickRandomChart tries up to 5 different assets
       const chart = await pickRandomChart(undefined, undefined, visible, hidden);
       return NextResponse.json(chart);
     } catch (error) {

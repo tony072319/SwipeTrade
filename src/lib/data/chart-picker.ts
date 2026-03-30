@@ -8,6 +8,16 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Shuffle array using Fisher-Yates
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 async function fetchCandles(
   asset: Asset,
   timeframe: TimeFrame,
@@ -35,7 +45,9 @@ function buildChartData(
     );
   }
 
-  const maxStart = candles.length - totalNeeded;
+  // Pick a random window, avoiding the very end (might be incomplete candle)
+  const safeEnd = Math.max(candles.length - 2, totalNeeded);
+  const maxStart = safeEnd - totalNeeded;
   const startIndex = Math.floor(Math.random() * (maxStart + 1));
 
   return {
@@ -55,18 +67,32 @@ export async function pickRandomChart(
   visibleCount?: number,
   hiddenCount?: number,
 ): Promise<ChartData> {
-  const asset = forceAsset ?? pickRandom(ALL_ASSETS);
-  const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
+  // If no forced asset, try multiple random assets for robustness
+  const candidates = forceAsset
+    ? [forceAsset]
+    : shuffle(ALL_ASSETS).slice(0, 5); // try up to 5 random assets
 
-  let timeframe = forceTimeframe ?? pickRandom(availableTimeframes);
+  for (const asset of candidates) {
+    const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
+    let timeframe = forceTimeframe ?? pickRandom(availableTimeframes);
 
-  // If forced timeframe isn't available for this asset type, pick a valid one
-  if (!availableTimeframes.includes(timeframe)) {
-    timeframe = pickRandom(availableTimeframes);
+    // If forced timeframe isn't available for this asset type, pick a valid one
+    if (!availableTimeframes.includes(timeframe)) {
+      timeframe = pickRandom(availableTimeframes);
+    }
+
+    try {
+      const candles = await fetchCandles(asset, timeframe);
+      return buildChartData(asset, timeframe, candles, visibleCount, hiddenCount);
+    } catch (error) {
+      console.warn(
+        `Failed to fetch ${asset.symbol} ${timeframe}: ${error instanceof Error ? error.message : error}`,
+      );
+      // Continue to next candidate
+    }
   }
 
-  const candles = await fetchCandles(asset, timeframe);
-  return buildChartData(asset, timeframe, candles, visibleCount, hiddenCount);
+  throw new Error("Failed to fetch chart data after multiple attempts");
 }
 
 export async function pickChartForAssetAndTimeframe(
