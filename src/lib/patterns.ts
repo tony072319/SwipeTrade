@@ -150,6 +150,46 @@ export function detectPatterns(candles: Candle[]): PatternMatch[] {
     ) {
       patterns.push({ name: "Three Black Crows", type: "bearish", index: i, strength: 3 });
     }
+
+    // Inverted Hammer (bullish reversal candidate)
+    if (
+      upperWick(c) > body * 2 &&
+      lowerWick(c) < body * 0.5 &&
+      isGreen(c) &&
+      isRed(prev) &&
+      isRed(prev2)
+    ) {
+      patterns.push({ name: "Inverted Hammer", type: "bullish", index: i, strength: 2 });
+    }
+
+    // Hanging Man (bearish reversal)
+    if (
+      lowerWick(c) > body * 2 &&
+      upperWick(c) < body * 0.5 &&
+      isRed(c) &&
+      isGreen(prev) &&
+      isGreen(prev2)
+    ) {
+      patterns.push({ name: "Hanging Man", type: "bearish", index: i, strength: 2 });
+    }
+
+    // Tweezer Bottom (bullish)
+    if (
+      isGreen(c) &&
+      isRed(prev) &&
+      Math.abs(c.low - prev.low) < range * 0.05
+    ) {
+      patterns.push({ name: "Tweezer Bottom", type: "bullish", index: i, strength: 2 });
+    }
+
+    // Tweezer Top (bearish)
+    if (
+      isRed(c) &&
+      isGreen(prev) &&
+      Math.abs(c.high - prev.high) < range * 0.05
+    ) {
+      patterns.push({ name: "Tweezer Top", type: "bearish", index: i, strength: 2 });
+    }
   }
 
   // Deduplicate — only keep the strongest pattern per index

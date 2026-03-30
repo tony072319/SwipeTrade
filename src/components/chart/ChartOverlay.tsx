@@ -55,6 +55,21 @@ export default function ChartOverlay({
           <div className="rounded-lg bg-surface-secondary/80 px-2 py-1 backdrop-blur-sm border border-glass-border inline-flex">
             <MarketSentiment candles={candles} />
           </div>
+          {/* Relative Volume (RVOL) */}
+          {candles.some((c) => c.volume && c.volume > 0) && (() => {
+            const vols = candles.filter((c) => c.volume && c.volume > 0).map((c) => c.volume!);
+            if (vols.length < 5) return null;
+            const avgVol = vols.slice(0, -1).reduce((s, v) => s + v, 0) / (vols.length - 1);
+            const lastVol = vols[vols.length - 1];
+            const rvol = avgVol > 0 ? lastVol / avgVol : 1;
+            return (
+              <span className={`rounded-lg bg-surface-secondary/80 px-2 py-1 text-[9px] font-bold backdrop-blur-sm border border-glass-border ${
+                rvol >= 1.5 ? "text-accent" : "text-text-muted"
+              }`}>
+                RVOL {rvol.toFixed(1)}x
+              </span>
+            );
+          })()}
           <PatternLabels candles={candles} />
         </div>
       )}
