@@ -20,6 +20,7 @@ import { ConfidenceCalibration } from "@/components/game/ConfidenceRating";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
+import AssetBreakdown from "@/components/portfolio/AssetBreakdown";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -241,6 +242,9 @@ export default function ProfilePage() {
 
       {/* P&L distribution */}
       <PnlDistribution trades={trades} />
+
+      {/* Asset breakdown */}
+      <AssetBreakdown />
 
       {/* Performance by asset */}
       <PerformanceBreakdown trades={trades} />

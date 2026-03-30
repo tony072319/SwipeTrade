@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ChartData } from "@/types/chart";
 
 interface FetchChartParams {
@@ -10,24 +10,44 @@ interface FetchChartParams {
   hidden?: number;
 }
 
+function buildUrl(params?: FetchChartParams): string {
+  const searchParams = new URLSearchParams();
+  if (params?.asset) searchParams.set("asset", params.asset);
+  if (params?.timeframe) searchParams.set("timeframe", params.timeframe);
+  if (params?.visible) searchParams.set("visible", params.visible.toString());
+  if (params?.hidden) searchParams.set("hidden", params.hidden.toString());
+  const query = searchParams.toString();
+  return `/api/charts${query ? `?${query}` : ""}`;
+}
+
 export function useChart() {
   const [chart, setChart] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prefetchRef = useRef<Promise<ChartData> | null>(null);
+  const lastParamsRef = useRef<FetchChartParams | undefined>(undefined);
 
   const fetchChart = useCallback(async (params?: FetchChartParams) => {
     setLoading(true);
     setError(null);
 
     try {
-      const searchParams = new URLSearchParams();
-      if (params?.asset) searchParams.set("asset", params.asset);
-      if (params?.timeframe) searchParams.set("timeframe", params.timeframe);
-      if (params?.visible) searchParams.set("visible", params.visible.toString());
-      if (params?.hidden) searchParams.set("hidden", params.hidden.toString());
+      // Check if we have a prefetched chart ready
+      if (prefetchRef.current) {
+        const prefetched = prefetchRef.current;
+        prefetchRef.current = null;
+        try {
+          const data = await prefetched;
+          setChart(data);
+          setLoading(false);
+          return;
+        } catch {
+          // Prefetch failed, do normal fetch
+        }
+      }
 
-      const query = searchParams.toString();
-      const url = `/api/charts${query ? `?${query}` : ""}`;
+      const url = buildUrl(params);
+      lastParamsRef.current = params;
 
       const res = await fetch(url);
       if (!res.ok) {
@@ -43,5 +63,19 @@ export function useChart() {
     }
   }, []);
 
-  return { chart, loading, error, fetchChart };
+  // Start prefetching the next chart in background
+  const prefetchNext = useCallback((params?: FetchChartParams) => {
+    const url = buildUrl(params ?? lastParamsRef.current);
+    prefetchRef.current = fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error("Prefetch failed");
+        return res.json();
+      })
+      .catch(() => {
+        prefetchRef.current = null;
+        return null;
+      });
+  }, []);
+
+  return { chart, loading, error, fetchChart, prefetchNext };
 }

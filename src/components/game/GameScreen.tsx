@@ -39,7 +39,7 @@ interface GameScreenProps {
 
 export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const hydrated = useHydration();
-  const { chart: chartData, loading, error, fetchChart } = useChart();
+  const { chart: chartData, loading, error, fetchChart, prefetchNext } = useChart();
   const {
     phase,
     chart,
@@ -185,9 +185,11 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   useEffect(() => {
     if (phase === "swiped") {
       const timer = setTimeout(() => setRevealing(), 200);
+      // Start prefetching next chart while revealing
+      prefetchNext();
       return () => clearTimeout(timer);
     }
-  }, [phase, setRevealing]);
+  }, [phase, setRevealing, prefetchNext]);
 
   const handleSwipe = useCallback(
     (dir: Direction) => {
