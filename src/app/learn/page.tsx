@@ -232,6 +232,36 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     correct: 1,
     explanation: "When Bollinger Bands squeeze, volatility is low. This often precedes a significant move in either direction.",
   },
+  {
+    question: "What is VWAP used for?",
+    options: ["Measuring volume only", "Finding fair value price", "Predicting earnings", "Calculating dividends"],
+    correct: 1,
+    explanation: "VWAP (Volume-Weighted Average Price) shows the average price weighted by volume. Institutional traders use it as a benchmark for fair value.",
+  },
+  {
+    question: "A 'Golden Cross' occurs when:",
+    options: ["Price hits all-time high", "SMA 50 crosses above SMA 200", "RSI crosses 50", "Volume doubles"],
+    correct: 1,
+    explanation: "The Golden Cross is when the 50-day moving average crosses above the 200-day, traditionally seen as a bullish long-term signal.",
+  },
+  {
+    question: "What does 'higher timeframe' analysis help with?",
+    options: ["Faster trades", "Seeing the bigger trend context", "Lower fees", "More volatility"],
+    correct: 1,
+    explanation: "Higher timeframes (daily, weekly) filter out noise and reveal the dominant trend, helping you trade in the right direction.",
+  },
+  {
+    question: "Three consecutive red candles with growing bodies suggest:",
+    options: ["Bullish reversal", "Strong bearish momentum", "Consolidation", "Random noise"],
+    correct: 1,
+    explanation: "Growing red candle bodies indicate increasing selling pressure and strong bearish momentum — sellers are in control.",
+  },
+  {
+    question: "What's the main risk of using high leverage?",
+    options: ["Slower execution", "Amplified losses", "Higher fees", "Less volatility"],
+    correct: 1,
+    explanation: "Leverage amplifies both gains AND losses. A 5x leveraged trade that moves 2% against you means a 10% loss on your position.",
+  },
 ];
 
 type Category = "all" | Lesson["category"];
