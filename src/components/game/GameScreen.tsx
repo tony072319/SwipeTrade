@@ -448,13 +448,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 </div>
               </div>
             )}
+            {/* Order type indicator */}
+            <div className="flex items-center gap-1.5 text-[9px]">
+              <span className="rounded bg-accent/10 border border-accent/20 px-1.5 py-0.5 font-bold text-accent">MARKET ORDER</span>
+              <span className="text-text-muted">Fill at best available price</span>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
                 aria-label="Short - bet price goes down"
                 className="flex-1 rounded-xl border border-loss/20 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.98]"
               >
-                ← SHORT
+                ← SELL SHORT
                 <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[S]</span>
               </button>
               <button
@@ -462,7 +467,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 aria-label="Long - bet price goes up"
                 className="flex-1 rounded-xl border border-profit/20 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.98]"
               >
-                LONG →
+                BUY LONG →
                 <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[L]</span>
               </button>
             </div>
@@ -471,18 +476,23 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
         {(phase === "swiped" || phase === "revealing") && (
           <div className="flex items-center justify-center py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-2 w-2 rounded-full bg-accent animate-pulse"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  />
-                ))}
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-2 w-2 rounded-full bg-accent animate-pulse"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                  ))}
+                </div>
+                <p className="text-sm font-medium text-text-secondary">
+                  {phase === "swiped" ? "Submitting order..." : "Order filled — revealing outcome..."}
+                </p>
               </div>
-              <p className="text-sm font-medium text-text-secondary">
-                {direction === "long" ? "Going Long..." : "Going Short..."}
+              <p className="text-[9px] font-mono text-text-muted">
+                {direction === "long" ? "BUY" : "SELL"} {chart?.asset.symbol} | MARKET ORDER | {leverage}x
               </p>
             </div>
           </div>

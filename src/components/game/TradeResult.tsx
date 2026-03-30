@@ -143,20 +143,28 @@ export default function TradeResult({
           </div>
         )}
 
-        {/* Direction + leverage badge */}
-        <div className="mb-4 flex items-center justify-center gap-2">
-          <span
-            className={cn(
-              "rounded-lg px-3 py-1 text-xs font-black uppercase tracking-wider",
-              result.direction === "long"
-                ? "bg-profit-bg text-profit"
-                : "bg-loss-bg text-loss",
-            )}
-          >
-            {result.direction}
-          </span>
-          <span className="rounded-lg bg-surface-tertiary px-3 py-1 text-xs font-bold text-text-secondary">
-            {result.leverage}x
+        {/* Order fill header — real brokerage style */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "rounded-lg px-3 py-1 text-xs font-black uppercase tracking-wider",
+                result.direction === "long"
+                  ? "bg-profit-bg text-profit"
+                  : "bg-loss-bg text-loss",
+              )}
+            >
+              {result.direction === "long" ? "BUY" : "SELL"}
+            </span>
+            <span className="rounded-lg bg-surface-tertiary px-3 py-1 text-xs font-bold text-text-secondary">
+              {result.leverage}x
+            </span>
+          </div>
+          <span className={cn(
+            "rounded-md px-2 py-0.5 text-[9px] font-bold border",
+            result.isWin ? "bg-profit/10 text-profit border-profit/20" : "bg-loss/10 text-loss border-loss/20",
+          )}>
+            {result.isWin ? "FILLED — PROFIT" : "FILLED — LOSS"}
           </span>
         </div>
 
@@ -214,6 +222,12 @@ export default function TradeResult({
             <span className="text-text-muted">Balance</span>
             <span className="font-mono font-bold text-text-primary">
               {formatCurrency(balance)}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-text-muted">Filled at</span>
+            <span className="font-mono text-text-muted text-[10px]">
+              {new Date().toLocaleTimeString()}
             </span>
           </div>
         </div>
