@@ -10,6 +10,7 @@ import AchievementsGrid from "@/components/portfolio/AchievementsGrid";
 import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
+import DataExport from "@/components/portfolio/DataExport";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -159,6 +160,9 @@ export default function ProfilePage() {
 
       {/* Settings */}
       <SettingsSection />
+
+      {/* Data export/import */}
+      <DataExport />
 
       {/* Actions */}
       <div className="mx-4 mt-6 space-y-3 pb-4">
