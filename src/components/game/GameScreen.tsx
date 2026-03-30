@@ -13,6 +13,7 @@ import { calculateMACD } from "@/lib/indicators/macd";
 import { calculateBollinger } from "@/lib/indicators/bollinger";
 import type { Direction } from "@/types/trade";
 import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
+import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
 import ChartReveal from "@/components/chart/ChartReveal";
 import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
@@ -165,15 +166,24 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const handleAssetSelect = useCallback(
     (asset: Asset | null) => {
       setSelectedAsset(asset);
+      // Auto-reset timeframe if it's not valid for the new asset type
+      let tf = selectedTimeframe;
+      if (asset && tf) {
+        const validTFs = TIMEFRAMES_BY_TYPE[asset.type];
+        if (!validTFs.includes(tf)) {
+          tf = null;
+          setSelectedTimeframe(null);
+        }
+      }
       reset();
       setTimeout(() => {
         const params: { asset?: string; timeframe?: string } = {};
         if (asset) params.asset = asset.symbol;
-        if (selectedTimeframe) params.timeframe = selectedTimeframe;
+        if (tf) params.timeframe = tf;
         fetchChart(Object.keys(params).length > 0 ? params : undefined);
       }, 50);
     },
-    [setSelectedAsset, selectedTimeframe, reset, fetchChart],
+    [setSelectedAsset, setSelectedTimeframe, selectedTimeframe, reset, fetchChart],
   );
 
   const handleTimeframeChange = useCallback(
@@ -218,7 +228,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Chart area */}
-      <div className="relative flex-1">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
         {phase === "loading" && (
           <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-3">

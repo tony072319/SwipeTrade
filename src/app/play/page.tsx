@@ -69,7 +69,7 @@ export default function PlayPage() {
       />
 
       {/* Game area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1">
         <GameScreen balance={currentBalance} onTrade={handleTrade} />
       </div>
     </main>

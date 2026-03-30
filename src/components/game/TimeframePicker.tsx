@@ -4,8 +4,6 @@ import type { TimeFrame, AssetType } from "@/types/chart";
 import { TIMEFRAMES_BY_TYPE, TIMEFRAME_LABELS } from "@/lib/data/assets";
 import { cn } from "@/lib/utils";
 
-const ALL_TIMEFRAMES: TimeFrame[] = ["1m", "5m", "15m", "1h", "4h", "1D"];
-
 interface TimeframePickerProps {
   value: TimeFrame | null;
   onChange: (tf: TimeFrame | null) => void;
@@ -17,9 +15,10 @@ export default function TimeframePicker({
   onChange,
   assetType,
 }: TimeframePickerProps) {
+  const allTimeframes: TimeFrame[] = ["1m", "5m", "15m", "1h", "4h", "1D"];
   const availableTimeframes = assetType
     ? TIMEFRAMES_BY_TYPE[assetType]
-    : ALL_TIMEFRAMES;
+    : allTimeframes;
 
   return (
     <div className="flex items-center gap-1">
@@ -36,21 +35,17 @@ export default function TimeframePicker({
         Auto
       </button>
 
-      {ALL_TIMEFRAMES.map((tf) => {
-        const available = availableTimeframes.includes(tf);
+      {availableTimeframes.map((tf) => {
         const isSelected = value === tf;
         return (
           <button
             key={tf}
-            onClick={() => available && onChange(tf)}
-            disabled={!available}
+            onClick={() => onChange(tf)}
             className={cn(
               "rounded-md px-2 py-1 text-[10px] font-bold transition-all",
               isSelected
                 ? "bg-accent text-white"
-                : available
-                  ? "bg-surface-tertiary text-text-muted hover:text-text-secondary"
-                  : "bg-surface-tertiary/50 text-text-muted/30 cursor-not-allowed",
+                : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
             )}
           >
             {TIMEFRAME_LABELS[tf]}

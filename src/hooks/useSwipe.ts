@@ -24,11 +24,22 @@ export function useSwipe({
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const swipedRef = useRef(false);
+  // Use a ref to track current delta/direction so we can read outside setState
+  const stateRef = useRef<SwipeState>({
+    swiping: false,
+    deltaX: 0,
+    direction: null,
+  });
   const [state, setState] = useState<SwipeState>({
     swiping: false,
     deltaX: 0,
     direction: null,
   });
+
+  const updateState = useCallback((newState: SwipeState) => {
+    stateRef.current = newState;
+    setState(newState);
+  }, []);
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
@@ -36,9 +47,9 @@ export function useSwipe({
       startXRef.current = e.touches[0].clientX;
       startYRef.current = e.touches[0].clientY;
       swipedRef.current = false;
-      setState({ swiping: false, deltaX: 0, direction: null });
+      updateState({ swiping: false, deltaX: 0, direction: null });
     },
-    [enabled],
+    [enabled, updateState],
   );
 
   const handleTouchMove = useCallback(
@@ -62,23 +73,24 @@ export function useSwipe({
             ? "short"
             : null;
 
-      setState({ swiping: true, deltaX, direction });
+      updateState({ swiping: true, deltaX, direction });
     },
-    [enabled, threshold],
+    [enabled, threshold, updateState],
   );
 
   const handleTouchEnd = useCallback(() => {
     if (!enabled || swipedRef.current) return;
 
-    setState((prev) => {
-      if (Math.abs(prev.deltaX) >= threshold && prev.direction) {
-        swipedRef.current = true;
-        onSwipe?.(prev.direction);
-        return { ...prev, swiping: false };
-      }
-      return { swiping: false, deltaX: 0, direction: null };
-    });
-  }, [enabled, threshold, onSwipe]);
+    const { deltaX, direction } = stateRef.current;
+    if (Math.abs(deltaX) >= threshold && direction) {
+      swipedRef.current = true;
+      updateState({ swiping: false, deltaX, direction });
+      // Call onSwipe outside of setState to avoid "setState during render" error
+      setTimeout(() => onSwipe?.(direction), 0);
+    } else {
+      updateState({ swiping: false, deltaX: 0, direction: null });
+    }
+  }, [enabled, threshold, onSwipe, updateState]);
 
   // Mouse support for desktop
   const mouseDownRef = useRef(false);
@@ -90,9 +102,9 @@ export function useSwipe({
       startXRef.current = e.clientX;
       startYRef.current = e.clientY;
       swipedRef.current = false;
-      setState({ swiping: false, deltaX: 0, direction: null });
+      updateState({ swiping: false, deltaX: 0, direction: null });
     },
-    [enabled],
+    [enabled, updateState],
   );
 
   const handleMouseMove = useCallback(
@@ -105,9 +117,9 @@ export function useSwipe({
           : deltaX < -threshold / 2
             ? "short"
             : null;
-      setState({ swiping: true, deltaX, direction });
+      updateState({ swiping: true, deltaX, direction });
     },
-    [enabled, threshold],
+    [enabled, threshold, updateState],
   );
 
   const handleMouseUp = useCallback(() => {

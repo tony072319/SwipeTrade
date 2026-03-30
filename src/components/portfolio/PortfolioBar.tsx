@@ -19,7 +19,7 @@ export default function PortfolioBar({
   flash,
 }: PortfolioBarProps) {
   return (
-    <div className="flex items-center justify-between border-b border-border bg-surface-secondary/50 px-4 py-3">
+    <div className="flex shrink-0 items-center justify-between border-b border-border bg-surface-secondary/50 px-4 py-3">
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-black tracking-tight bg-gradient-to-r from-accent to-purple-400 bg-clip-text text-transparent">
           SwipeTrade

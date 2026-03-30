@@ -136,16 +136,11 @@ export default function ChartReveal({
       });
     }
 
-    // Fit content first, then lock viewport with space for hidden candles
+    // Fit content first, then add right offset for hidden candles space
     chart.timeScale().fitContent();
-
-    const range = chart.timeScale().getVisibleLogicalRange();
-    if (range) {
-      chart.timeScale().setVisibleLogicalRange({
-        from: range.from,
-        to: range.to + hiddenCandles.length + 3,
-      });
-    }
+    chart.timeScale().applyOptions({
+      rightOffset: hiddenCandles.length + 5,
+    });
 
     // Add overlay indicator series (EMA, Bollinger)
     const newOverlaySeries = new Map<string, ISeriesApi<"Line">>();
@@ -253,7 +248,7 @@ export default function ChartReveal({
         handleScale: false,
         crosshair: {
           vertLine: { visible: false },
-          horzLine: { color: "#64748b40", width: 1, style: 3 },
+          horzLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
         },
       });
 
@@ -277,13 +272,9 @@ export default function ChartReveal({
       rsiSeriesRef.current = rsiSeries;
 
       rsiChart.timeScale().fitContent();
-      const rsiRange = rsiChart.timeScale().getVisibleLogicalRange();
-      if (rsiRange) {
-        rsiChart.timeScale().setVisibleLogicalRange({
-          from: rsiRange.from,
-          to: rsiRange.to + hiddenCandles.length + 3,
-        });
-      }
+      rsiChart.timeScale().applyOptions({
+        rightOffset: hiddenCandles.length + 5,
+      });
     }
 
     // MACD sub-chart
@@ -311,7 +302,7 @@ export default function ChartReveal({
         handleScale: false,
         crosshair: {
           vertLine: { visible: false },
-          horzLine: { color: "#64748b40", width: 1, style: 3 },
+          horzLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
         },
       });
 
@@ -359,13 +350,9 @@ export default function ChartReveal({
       macdHistSeriesRef.current = macdHist;
 
       macdChart.timeScale().fitContent();
-      const macdRange = macdChart.timeScale().getVisibleLogicalRange();
-      if (macdRange) {
-        macdChart.timeScale().setVisibleLogicalRange({
-          from: macdRange.from,
-          to: macdRange.to + hiddenCandles.length + 3,
-        });
-      }
+      macdChart.timeScale().applyOptions({
+        rightOffset: hiddenCandles.length + 5,
+      });
     }
 
     const resizeObserver = new ResizeObserver((entries) => {
