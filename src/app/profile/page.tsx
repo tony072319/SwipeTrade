@@ -17,6 +17,7 @@ import RiskMetrics from "@/components/portfolio/RiskMetrics";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
+import { useDailyPlayStreak } from "@/hooks/useDailyPlayStreak";
 
 export default function ProfilePage() {
   const hydrated = useHydration();
@@ -35,6 +36,7 @@ export default function ProfilePage() {
   } = usePortfolioStore();
 
   const winRate = totalTrades > 0 ? winningTrades / totalTrades : 0;
+  const playStreak = useDailyPlayStreak();
 
   if (!hydrated) {
     return (
@@ -106,6 +108,20 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Daily play streak */}
+      {playStreak.currentStreak >= 2 && (
+        <div className="mx-4 mt-2 rounded-xl border border-accent/20 bg-accent/5 px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{playStreak.currentStreak >= 7 ? "\uD83D\uDD25" : "\uD83D\uDCC5"}</span>
+            <div>
+              <p className="text-xs font-bold text-accent">{playStreak.currentStreak} day streak!</p>
+              <p className="text-[9px] text-text-muted">Best: {playStreak.longestStreak} days</p>
+            </div>
+          </div>
+          <p className="text-[10px] text-text-muted">Play daily to keep it going</p>
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="mx-4 mt-4 grid grid-cols-3 gap-2">

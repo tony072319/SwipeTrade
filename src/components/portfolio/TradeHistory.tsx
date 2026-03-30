@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { Trade } from "@/types/trade";
+import { useNotesStore } from "@/stores/notes-store";
 import { formatCurrency, cn } from "@/lib/utils";
 
 interface TradeHistoryProps {
@@ -13,6 +14,10 @@ type Filter = "all" | "wins" | "losses" | "long" | "short";
 function TradeDetailRow({ trade }: { trade: Trade }) {
   const priceChange = ((trade.exitPrice - trade.entryPrice) / trade.entryPrice) * 100;
   const isUp = trade.exitPrice >= trade.entryPrice;
+  const { notes, setNote, deleteNote } = useNotesStore();
+  const [editingNote, setEditingNote] = useState(false);
+  const [noteText, setNoteText] = useState(notes[trade.id] || "");
+  const existingNote = notes[trade.id];
 
   return (
     <div className="px-4 pb-3 pt-1 animate-fade-in">
@@ -86,6 +91,70 @@ function TradeDetailRow({ trade }: { trade: Trade }) {
             </span>
           )}
         </div>
+
+        {/* Trade note */}
+        {editingNote ? (
+          <div className="space-y-1.5">
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Add a note about this trade..."
+              className="w-full rounded-lg border border-border bg-surface px-2.5 py-2 text-[10px] text-text-primary placeholder-text-muted outline-none focus:border-accent resize-none select-text"
+              rows={2}
+              autoFocus
+            />
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => {
+                  if (noteText.trim()) {
+                    setNote(trade.id, noteText.trim());
+                  } else {
+                    deleteNote(trade.id);
+                  }
+                  setEditingNote(false);
+                }}
+                className="rounded-md bg-accent px-2.5 py-1 text-[9px] font-bold text-white"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setNoteText(existingNote || "");
+                  setEditingNote(false);
+                }}
+                className="rounded-md bg-surface-tertiary px-2.5 py-1 text-[9px] font-bold text-text-muted"
+              >
+                Cancel
+              </button>
+              {existingNote && (
+                <button
+                  onClick={() => {
+                    deleteNote(trade.id);
+                    setNoteText("");
+                    setEditingNote(false);
+                  }}
+                  className="rounded-md bg-loss/10 px-2.5 py-1 text-[9px] font-bold text-loss"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
+        ) : existingNote ? (
+          <button
+            onClick={() => setEditingNote(true)}
+            className="w-full rounded-lg bg-surface/50 px-2.5 py-1.5 text-left transition-colors hover:bg-surface"
+          >
+            <p className="text-[9px] text-text-secondary leading-relaxed select-text">{existingNote}</p>
+          </button>
+        ) : (
+          <button
+            onClick={() => setEditingNote(true)}
+            className="text-[9px] text-text-muted/50 hover:text-text-muted transition-colors"
+          >
+            + Add note
+          </button>
+        )}
       </div>
     </div>
   );
