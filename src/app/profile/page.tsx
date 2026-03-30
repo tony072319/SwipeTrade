@@ -11,7 +11,7 @@ import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import SignInButton from "@/components/auth/SignInButton";
-import { useSettingsStore, ACCENT_COLORS, type AccentColor } from "@/stores/settings-store";
+import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function ProfilePage() {
@@ -193,7 +193,7 @@ export default function ProfilePage() {
 }
 
 function SettingsSection() {
-  const { soundEnabled, revealSpeed, accentColor, setSoundEnabled, setRevealSpeed, setAccentColor } = useSettingsStore();
+  const { soundEnabled, revealSpeed, accentColor, difficulty, setSoundEnabled, setRevealSpeed, setAccentColor, setDifficulty } = useSettingsStore();
 
   return (
     <div className="mx-4 mt-6">
@@ -260,6 +260,30 @@ function SettingsSection() {
                 )}
                 style={{ backgroundColor: ACCENT_COLORS[color] }}
               />
+            ))}
+          </div>
+        </div>
+
+        {/* Difficulty */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Difficulty</p>
+            <p className="text-[10px] text-text-muted">{DIFFICULTY_CONFIG[difficulty].desc}</p>
+          </div>
+          <div className="flex gap-1">
+            {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => setDifficulty(d)}
+                className={cn(
+                  "rounded-md px-2.5 py-1 text-xs font-bold transition-all",
+                  difficulty === d
+                    ? "bg-accent text-white"
+                    : "bg-surface-tertiary text-text-muted",
+                )}
+              >
+                {DIFFICULTY_CONFIG[d].label}
+              </button>
             ))}
           </div>
         </div>

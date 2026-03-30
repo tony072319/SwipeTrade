@@ -17,6 +17,14 @@ export const ACCENT_COLORS: Record<AccentColor, string> = {
   violet: "#8b5cf6",
 };
 
+export type Difficulty = "easy" | "normal" | "hard";
+
+export const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; visible: number; hidden: number; desc: string }> = {
+  easy: { label: "Easy", visible: 60, hidden: 15, desc: "60 visible, 15 hidden" },
+  normal: { label: "Normal", visible: 50, hidden: 20, desc: "50 visible, 20 hidden" },
+  hard: { label: "Hard", visible: 35, hidden: 25, desc: "35 visible, 25 hidden" },
+};
+
 interface SettingsStore {
   selectedAsset: Asset | null; // null = random
   selectedTimeframe: TimeFrame | null; // null = random for asset type
@@ -25,6 +33,7 @@ interface SettingsStore {
   revealSpeed: 1 | 2 | 4;
   soundEnabled: boolean;
   accentColor: AccentColor;
+  difficulty: Difficulty;
 
   setSelectedAsset: (asset: Asset | null) => void;
   setSelectedTimeframe: (tf: TimeFrame | null) => void;
@@ -33,6 +42,7 @@ interface SettingsStore {
   setRevealSpeed: (speed: 1 | 2 | 4) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setAccentColor: (color: AccentColor) => void;
+  setDifficulty: (d: Difficulty) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -45,6 +55,7 @@ export const useSettingsStore = create<SettingsStore>()(
       revealSpeed: 1,
       soundEnabled: true,
       accentColor: "indigo",
+      difficulty: "normal",
 
       setSelectedAsset: (asset) => set({ selectedAsset: asset }),
       setSelectedTimeframe: (tf) => set({ selectedTimeframe: tf }),
@@ -58,6 +69,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setRevealSpeed: (speed) => set({ revealSpeed: speed }),
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setAccentColor: (color) => set({ accentColor: color }),
+      setDifficulty: (d) => set({ difficulty: d }),
     }),
     {
       name: "swipetrade-settings",

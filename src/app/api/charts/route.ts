@@ -16,6 +16,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const assetSymbol = searchParams.get("asset");
   const timeframe = searchParams.get("timeframe") as TimeFrame | null;
+  const visibleParam = searchParams.get("visible");
+  const hiddenParam = searchParams.get("hidden");
+
+  const visible = visibleParam ? Math.min(Math.max(parseInt(visibleParam, 10), 20), 80) : undefined;
+  const hidden = hiddenParam ? Math.min(Math.max(parseInt(hiddenParam, 10), 10), 40) : undefined;
 
   if (timeframe && !VALID_TIMEFRAMES.includes(timeframe)) {
     return NextResponse.json({ error: "Invalid timeframe" }, { status: 400 });
@@ -34,18 +39,18 @@ export async function GET(request: Request) {
       }
 
       if (asset && timeframe) {
-        const chart = await pickChartForAssetAndTimeframe(asset, timeframe);
+        const chart = await pickChartForAssetAndTimeframe(asset, timeframe, visible, hidden);
         return NextResponse.json(chart);
       } else if (asset) {
         const tfs = TIMEFRAMES_BY_TYPE[asset.type];
-        const chart = await pickChartForAssetAndTimeframe(asset, pickRandom(tfs));
+        const chart = await pickChartForAssetAndTimeframe(asset, pickRandom(tfs), visible, hidden);
         return NextResponse.json(chart);
       } else if (timeframe) {
-        const chart = await pickRandomChart(undefined, timeframe);
+        const chart = await pickRandomChart(undefined, timeframe, visible, hidden);
         return NextResponse.json(chart);
       }
 
-      const chart = await pickRandomChart();
+      const chart = await pickRandomChart(undefined, undefined, visible, hidden);
       return NextResponse.json(chart);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));

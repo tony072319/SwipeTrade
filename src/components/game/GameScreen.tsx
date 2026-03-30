@@ -17,6 +17,7 @@ import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
 import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
 import { cn } from "@/lib/utils";
 import { setSoundEnabled } from "@/lib/sounds";
+import { DIFFICULTY_CONFIG } from "@/stores/settings-store";
 import ChartReveal from "@/components/chart/ChartReveal";
 import ChartSkeleton from "@/components/chart/ChartSkeleton";
 import ChartOverlay from "@/components/chart/ChartOverlay";
@@ -56,6 +57,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     enabledIndicators,
     revealSpeed,
     soundEnabled,
+    difficulty,
     setSelectedAsset,
     setSelectedTimeframe,
     setRevealSpeed,
@@ -132,11 +134,16 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
   // Fetch chart with current settings
   const loadChart = useCallback(() => {
-    const params: { asset?: string; timeframe?: string } = {};
+    const params: { asset?: string; timeframe?: string; visible?: number; hidden?: number } = {};
     if (hydrated && selectedAsset) params.asset = selectedAsset.symbol;
     if (hydrated && selectedTimeframe) params.timeframe = selectedTimeframe;
+    if (hydrated && difficulty) {
+      const config = DIFFICULTY_CONFIG[difficulty];
+      params.visible = config.visible;
+      params.hidden = config.hidden;
+    }
     fetchChart(Object.keys(params).length > 0 ? params : undefined);
-  }, [fetchChart, selectedAsset, selectedTimeframe, hydrated]);
+  }, [fetchChart, selectedAsset, selectedTimeframe, difficulty, hydrated]);
 
   useEffect(() => {
     loadChart();
@@ -194,13 +201,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
       }
       reset();
       setTimeout(() => {
-        const params: { asset?: string; timeframe?: string } = {};
+        const params: { asset?: string; timeframe?: string; visible?: number; hidden?: number } = {};
         if (asset) params.asset = asset.symbol;
         if (tf) params.timeframe = tf;
+        if (difficulty) {
+          const config = DIFFICULTY_CONFIG[difficulty];
+          params.visible = config.visible;
+          params.hidden = config.hidden;
+        }
         fetchChart(Object.keys(params).length > 0 ? params : undefined);
       }, 50);
     },
-    [setSelectedAsset, setSelectedTimeframe, selectedTimeframe, reset, fetchChart],
+    [setSelectedAsset, setSelectedTimeframe, selectedTimeframe, difficulty, reset, fetchChart],
   );
 
   const handleTimeframeChange = useCallback(
@@ -208,13 +220,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
       setSelectedTimeframe(tf);
       reset();
       setTimeout(() => {
-        const params: { asset?: string; timeframe?: string } = {};
+        const params: { asset?: string; timeframe?: string; visible?: number; hidden?: number } = {};
         if (selectedAsset) params.asset = selectedAsset.symbol;
         if (tf) params.timeframe = tf;
+        if (difficulty) {
+          const config = DIFFICULTY_CONFIG[difficulty];
+          params.visible = config.visible;
+          params.hidden = config.hidden;
+        }
         fetchChart(Object.keys(params).length > 0 ? params : undefined);
       }, 50);
     },
-    [setSelectedTimeframe, selectedAsset, reset, fetchChart],
+    [setSelectedTimeframe, selectedAsset, difficulty, reset, fetchChart],
   );
 
   // Keyboard shortcuts

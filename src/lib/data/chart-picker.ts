@@ -22,8 +22,12 @@ function buildChartData(
   asset: Asset,
   timeframe: TimeFrame,
   candles: Candle[],
+  visibleCount?: number,
+  hiddenCount?: number,
 ): ChartData {
-  const totalNeeded = VISIBLE_CANDLES + HIDDEN_CANDLES;
+  const visible = visibleCount ?? VISIBLE_CANDLES;
+  const hidden = hiddenCount ?? HIDDEN_CANDLES;
+  const totalNeeded = visible + hidden;
 
   if (candles.length < totalNeeded) {
     throw new Error(
@@ -37,10 +41,10 @@ function buildChartData(
   return {
     asset,
     timeframe,
-    visibleCandles: candles.slice(startIndex, startIndex + VISIBLE_CANDLES),
+    visibleCandles: candles.slice(startIndex, startIndex + visible),
     hiddenCandles: candles.slice(
-      startIndex + VISIBLE_CANDLES,
-      startIndex + VISIBLE_CANDLES + HIDDEN_CANDLES,
+      startIndex + visible,
+      startIndex + visible + hidden,
     ),
   };
 }
@@ -48,6 +52,8 @@ function buildChartData(
 export async function pickRandomChart(
   forceAsset?: Asset,
   forceTimeframe?: TimeFrame,
+  visibleCount?: number,
+  hiddenCount?: number,
 ): Promise<ChartData> {
   const asset = forceAsset ?? pickRandom(ALL_ASSETS);
   const availableTimeframes = TIMEFRAMES_BY_TYPE[asset.type];
@@ -60,13 +66,15 @@ export async function pickRandomChart(
   }
 
   const candles = await fetchCandles(asset, timeframe);
-  return buildChartData(asset, timeframe, candles);
+  return buildChartData(asset, timeframe, candles, visibleCount, hiddenCount);
 }
 
 export async function pickChartForAssetAndTimeframe(
   asset: Asset,
   timeframe: TimeFrame,
+  visibleCount?: number,
+  hiddenCount?: number,
 ): Promise<ChartData> {
   const candles = await fetchCandles(asset, timeframe);
-  return buildChartData(asset, timeframe, candles);
+  return buildChartData(asset, timeframe, candles, visibleCount, hiddenCount);
 }

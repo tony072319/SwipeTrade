@@ -6,6 +6,8 @@ import type { ChartData } from "@/types/chart";
 interface FetchChartParams {
   asset?: string;
   timeframe?: string;
+  visible?: number;
+  hidden?: number;
 }
 
 export function useChart() {
@@ -21,6 +23,8 @@ export function useChart() {
       const searchParams = new URLSearchParams();
       if (params?.asset) searchParams.set("asset", params.asset);
       if (params?.timeframe) searchParams.set("timeframe", params.timeframe);
+      if (params?.visible) searchParams.set("visible", params.visible.toString());
+      if (params?.hidden) searchParams.set("hidden", params.hidden.toString());
 
       const query = searchParams.toString();
       const url = `/api/charts${query ? `?${query}` : ""}`;
