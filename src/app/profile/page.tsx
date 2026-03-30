@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import TradeHistory from "@/components/portfolio/TradeHistory";
 import EquityCurve from "@/components/portfolio/EquityCurve";
 import SignInButton from "@/components/auth/SignInButton";
+import { useSettingsStore } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function ProfilePage() {
@@ -136,6 +137,9 @@ export default function ProfilePage() {
         <TradeHistory trades={trades} />
       </div>
 
+      {/* Settings */}
+      <SettingsSection />
+
       {/* Actions */}
       <div className="mx-4 mt-6 space-y-3 pb-4">
         {totalTrades > 0 && (
@@ -165,6 +169,73 @@ export default function ProfilePage() {
         )}
       </div>
     </main>
+  );
+}
+
+function SettingsSection() {
+  const { soundEnabled, revealSpeed, setSoundEnabled, setRevealSpeed } = useSettingsStore();
+
+  return (
+    <div className="mx-4 mt-6">
+      <h2 className="text-sm font-semibold text-text-primary mb-3">Settings</h2>
+      <div className="space-y-2">
+        {/* Sound toggle */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Sound Effects</p>
+            <p className="text-[10px] text-text-muted">Play sounds on trades and swipes</p>
+          </div>
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={cn(
+              "h-6 w-11 rounded-full transition-colors",
+              soundEnabled ? "bg-accent" : "bg-border",
+            )}
+          >
+            <div className={cn(
+              "h-6 w-6 rounded-full bg-white shadow transition-transform",
+              soundEnabled ? "translate-x-5" : "translate-x-0",
+            )} />
+          </button>
+        </div>
+
+        {/* Reveal speed */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Reveal Speed</p>
+            <p className="text-[10px] text-text-muted">Candle animation speed</p>
+          </div>
+          <div className="flex gap-1">
+            {([1, 2, 4] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setRevealSpeed(s)}
+                className={cn(
+                  "rounded-md px-2.5 py-1 text-xs font-bold transition-all",
+                  revealSpeed === s
+                    ? "bg-accent text-white"
+                    : "bg-surface-tertiary text-text-muted",
+                )}
+              >
+                {s}x
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Reset tutorial */}
+        <button
+          onClick={() => {
+            localStorage.removeItem("swipetrade-tutorial-seen");
+            alert("Tutorial will show next time you open Play.");
+          }}
+          className="w-full rounded-xl border border-border bg-surface-secondary px-4 py-3 text-left"
+        >
+          <p className="text-sm font-medium">Replay Tutorial</p>
+          <p className="text-[10px] text-text-muted">Show the onboarding guide again</p>
+        </button>
+      </div>
+    </div>
   );
 }
 

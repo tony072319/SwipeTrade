@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
+import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useChart } from "@/hooks/useChart";
 import { useHydration } from "@/hooks/useHydration";
 import { calculateTrade } from "@/lib/game/engine";
-import { BET_FRACTION } from "@/lib/game/constants";
+import { BET_FRACTION, STARTING_BALANCE } from "@/lib/game/constants";
 import { calculateEMA } from "@/lib/indicators/ema";
 import { calculateRSI } from "@/lib/indicators/rsi";
 import { calculateMACD } from "@/lib/indicators/macd";
@@ -240,8 +241,29 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [phase, handleSwipe, handleNext]);
 
+  const isBankrupt = hydrated && balance < 100;
+
   return (
     <div className="flex h-full flex-col">
+      {/* Bankruptcy warning */}
+      {isBankrupt && phase === "viewing" && (
+        <div className="shrink-0 bg-loss/10 border-b border-loss/20 px-4 py-2 text-center">
+          <p className="text-xs font-bold text-loss">
+            Low balance! Your portfolio is below $100.
+          </p>
+          <button
+            onClick={() => {
+              if (confirm(`Reset portfolio to $${STARTING_BALANCE.toLocaleString()}?`)) {
+                usePortfolioStore.getState().resetPortfolio();
+              }
+            }}
+            className="mt-1 rounded-md bg-loss/20 px-3 py-1 text-[10px] font-bold text-loss hover:bg-loss/30"
+          >
+            Reset to ${STARTING_BALANCE.toLocaleString()}
+          </button>
+        </div>
+      )}
+
       {/* Chart area */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {phase === "loading" && (

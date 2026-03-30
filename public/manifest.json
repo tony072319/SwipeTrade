@@ -1,22 +1,19 @@
 {
   "name": "SwipeTrade",
   "short_name": "SwipeTrade",
-  "description": "Chart prediction trading game",
-  "start_url": "/",
+  "description": "Chart prediction trading game — read the chart, swipe to trade",
+  "start_url": "/play",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0b0f1a",
+  "theme_color": "#0b0f1a",
   "orientation": "portrait",
+  "categories": ["games", "finance", "education"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
