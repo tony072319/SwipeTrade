@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import type { Asset } from "@/types/chart";
-import { CRYPTO_ASSETS, STOCK_ASSETS } from "@/lib/data/assets";
+import { CRYPTO_ASSETS, STOCK_ASSETS, ALL_ASSETS } from "@/lib/data/assets";
+import { useSettingsStore } from "@/stores/settings-store";
 import { cn } from "@/lib/utils";
 
 interface AssetPickerProps {
@@ -18,10 +19,11 @@ export default function AssetPicker({
   onSelect,
   selectedAsset,
 }: AssetPickerProps) {
-  const [tab, setTab] = useState<"crypto" | "stocks">("crypto");
+  const [tab, setTab] = useState<"all" | "crypto" | "stocks">("all");
   const [search, setSearch] = useState("");
+  const { recentAssets, favoriteAssets, addRecentAsset, toggleFavorite } = useSettingsStore();
 
-  const baseAssets = tab === "crypto" ? CRYPTO_ASSETS : STOCK_ASSETS;
+  const baseAssets = tab === "crypto" ? CRYPTO_ASSETS : tab === "stocks" ? STOCK_ASSETS : ALL_ASSETS;
 
   const assets = useMemo(() => {
     if (!search.trim()) return baseAssets;
@@ -33,7 +35,23 @@ export default function AssetPicker({
     );
   }, [baseAssets, search]);
 
+  const recentAssetObjects = useMemo(
+    () => recentAssets
+      .map((s) => ALL_ASSETS.find((a) => a.symbol === s))
+      .filter(Boolean) as Asset[],
+    [recentAssets],
+  );
+
+  const handleSelect = (asset: Asset | null) => {
+    if (asset) addRecentAsset(asset.symbol);
+    onSelect(asset);
+    onClose();
+    setSearch("");
+  };
+
   if (!open) return null;
+
+  const showRecent = !search && tab === "all" && recentAssetObjects.length > 0;
 
   return (
     <>
@@ -59,82 +77,109 @@ export default function AssetPicker({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-border bg-surface-tertiary px-4 py-2.5 text-sm text-text-primary placeholder-text-muted outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
-            autoFocus
           />
         </div>
 
         {/* Random option */}
         <button
-          onClick={() => { onSelect(null); onClose(); setSearch(""); }}
+          onClick={() => handleSelect(null)}
           className={cn(
-            "mx-4 mb-3 w-[calc(100%-2rem)] rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all",
+            "mx-4 mb-3 w-[calc(100%-2rem)] rounded-xl border px-4 py-2.5 text-left text-sm font-semibold transition-all",
             !selectedAsset
               ? "border-accent/30 bg-accent-bg text-accent"
               : "border-border bg-surface-tertiary text-text-secondary hover:bg-surface-tertiary/80",
           )}
         >
-          🎲 Random Asset
+          🎲 Random
         </button>
 
         {/* Tabs */}
         <div className="flex gap-1 px-4 pb-3">
-          <button
-            onClick={() => { setTab("crypto"); setSearch(""); }}
-            className={cn(
-              "flex-1 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all",
-              tab === "crypto"
-                ? "bg-accent text-white"
-                : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
-            )}
-          >
-            Crypto ({CRYPTO_ASSETS.length})
-          </button>
-          <button
-            onClick={() => { setTab("stocks"); setSearch(""); }}
-            className={cn(
-              "flex-1 rounded-lg py-2 text-xs font-bold uppercase tracking-wider transition-all",
-              tab === "stocks"
-                ? "bg-accent text-white"
-                : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
-            )}
-          >
-            Stocks ({STOCK_ASSETS.length})
-          </button>
+          {[
+            { key: "all" as const, label: `All (${ALL_ASSETS.length})` },
+            { key: "crypto" as const, label: `Crypto (${CRYPTO_ASSETS.length})` },
+            { key: "stocks" as const, label: `Stocks (${STOCK_ASSETS.length})` },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => { setTab(t.key); setSearch(""); }}
+              className={cn(
+                "flex-1 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-all",
+                tab === t.key
+                  ? "bg-accent text-white"
+                  : "bg-surface-tertiary text-text-muted hover:text-text-secondary",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
-        {/* Asset grid */}
-        <div className="grid grid-cols-2 gap-2 px-4 pb-6 max-h-60 overflow-y-auto">
-          {assets.length === 0 ? (
-            <div className="col-span-2 py-6 text-center text-xs text-text-muted">
-              No assets match &ldquo;{search}&rdquo;
+        <div className="max-h-64 overflow-y-auto px-4 pb-6">
+          {/* Recent assets */}
+          {showRecent && (
+            <div className="mb-3">
+              <p className="text-[10px] font-bold uppercase text-text-muted mb-1.5">Recent</p>
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+                {recentAssetObjects.map((asset) => (
+                  <button
+                    key={`recent-${asset.symbol}`}
+                    onClick={() => handleSelect(asset)}
+                    className="shrink-0 rounded-lg border border-border bg-surface-tertiary px-3 py-1.5 text-xs font-bold text-text-secondary hover:border-accent/30 transition-all"
+                  >
+                    {asset.symbol}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            assets.map((asset) => {
-              const isSelected = selectedAsset?.symbol === asset.symbol;
-              return (
-                <button
-                  key={asset.symbol}
-                  onClick={() => { onSelect(asset); onClose(); setSearch(""); }}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all",
-                    isSelected
-                      ? "border-accent/30 bg-accent-bg"
-                      : "border-border bg-surface-tertiary hover:border-border-light",
-                  )}
-                >
-                  <div className="flex flex-col">
-                    <span className={cn(
-                      "text-sm font-bold",
-                      isSelected ? "text-accent" : "text-text-primary",
-                    )}>
-                      {asset.symbol}
-                    </span>
-                    <span className="text-[10px] text-text-muted">{asset.name}</span>
-                  </div>
-                </button>
-              );
-            })
           )}
+
+          {/* Asset grid */}
+          <div className="grid grid-cols-2 gap-2">
+            {assets.length === 0 ? (
+              <div className="col-span-2 py-6 text-center text-xs text-text-muted">
+                No assets match &ldquo;{search}&rdquo;
+              </div>
+            ) : (
+              assets.map((asset) => {
+                const isSelected = selectedAsset?.symbol === asset.symbol;
+                const isFav = favoriteAssets.includes(asset.symbol);
+                return (
+                  <div
+                    key={asset.symbol}
+                    className={cn(
+                      "flex items-center justify-between rounded-xl border px-3 py-2.5 transition-all",
+                      isSelected
+                        ? "border-accent/30 bg-accent-bg"
+                        : "border-border bg-surface-tertiary hover:border-border-light",
+                    )}
+                  >
+                    <button
+                      onClick={() => handleSelect(asset)}
+                      className="flex flex-col text-left flex-1"
+                    >
+                      <span className={cn(
+                        "text-sm font-bold",
+                        isSelected ? "text-accent" : "text-text-primary",
+                      )}>
+                        {asset.symbol}
+                      </span>
+                      <span className="text-[9px] text-text-muted">{asset.name}</span>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleFavorite(asset.symbol); }}
+                      className={cn(
+                        "ml-1 text-xs transition-all",
+                        isFav ? "text-yellow-400" : "text-text-muted/30 hover:text-text-muted",
+                      )}
+                    >
+                      {isFav ? "★" : "☆"}
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </>

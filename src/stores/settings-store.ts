@@ -34,6 +34,8 @@ interface SettingsStore {
   soundEnabled: boolean;
   accentColor: AccentColor;
   difficulty: Difficulty;
+  recentAssets: string[]; // symbol list, most recent first
+  favoriteAssets: string[]; // symbol list
 
   setSelectedAsset: (asset: Asset | null) => void;
   setSelectedTimeframe: (tf: TimeFrame | null) => void;
@@ -43,6 +45,8 @@ interface SettingsStore {
   setSoundEnabled: (enabled: boolean) => void;
   setAccentColor: (color: AccentColor) => void;
   setDifficulty: (d: Difficulty) => void;
+  addRecentAsset: (symbol: string) => void;
+  toggleFavorite: (symbol: string) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -56,6 +60,8 @@ export const useSettingsStore = create<SettingsStore>()(
       soundEnabled: true,
       accentColor: "indigo",
       difficulty: "normal",
+      recentAssets: [],
+      favoriteAssets: [],
 
       setSelectedAsset: (asset) => set({ selectedAsset: asset }),
       setSelectedTimeframe: (tf) => set({ selectedTimeframe: tf }),
@@ -70,6 +76,16 @@ export const useSettingsStore = create<SettingsStore>()(
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setAccentColor: (color) => set({ accentColor: color }),
       setDifficulty: (d) => set({ difficulty: d }),
+      addRecentAsset: (symbol) =>
+        set((state) => ({
+          recentAssets: [symbol, ...state.recentAssets.filter((s) => s !== symbol)].slice(0, 5),
+        })),
+      toggleFavorite: (symbol) =>
+        set((state) => ({
+          favoriteAssets: state.favoriteAssets.includes(symbol)
+            ? state.favoriteAssets.filter((s) => s !== symbol)
+            : [...state.favoriteAssets, symbol],
+        })),
     }),
     {
       name: "swipetrade-settings",
