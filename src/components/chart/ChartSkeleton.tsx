@@ -13,6 +13,16 @@ const LOADING_TIPS = [
   "Tip: Look for support and resistance levels",
   "Tip: Doji candles signal indecision",
   "Tip: EMA crossovers can signal trend changes",
+  "Tip: SMA 50 crossing above SMA 200 = Golden Cross",
+  "Tip: VWAP shows where big money is buying/selling",
+  "Tip: RSI above 70 = overbought, below 30 = oversold",
+  "Tip: Bollinger Band squeeze often precedes big moves",
+  "Tip: Engulfing candles are strong reversal signals",
+  "Tip: Morning star patterns signal bullish reversals",
+  "Tip: Higher timeframes give more reliable signals",
+  "Tip: Don't fight the Fed — macro matters",
+  "Tip: MACD histogram divergence warns of trend weakness",
+  "Tip: Try the Gauntlet in Challenges for a 5-round test",
 ];
 
 export default function ChartSkeleton() {

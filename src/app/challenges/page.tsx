@@ -246,6 +246,16 @@ export default function ChallengesPage() {
     reset();
   }, [reset]);
 
+  const handleRetry = useCallback(() => {
+    if (!activeScenario) return;
+    setShowHint(false);
+    reset();
+    const params: Record<string, string> = {};
+    if (activeScenario.asset) params.asset = activeScenario.asset;
+    if (activeScenario.timeframe) params.timeframe = activeScenario.timeframe;
+    fetchChart(Object.keys(params).length > 0 ? params : undefined);
+  }, [activeScenario, reset, fetchChart]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -262,12 +272,15 @@ export default function ChallengesPage() {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
           handleNext();
+        } else if (e.key.toLowerCase() === "r") {
+          e.preventDefault();
+          handleRetry();
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeScenario, phase, handleSwipe, handleNext]);
+  }, [activeScenario, phase, handleSwipe, handleNext, handleRetry]);
 
   if (!hydrated) {
     return (
@@ -373,8 +386,19 @@ export default function ChallengesPage() {
           )}
 
           {phase === "result" && (
-            <div className="py-3 text-center">
-              <p className="text-xs text-text-muted">Tap &quot;Next Trade&quot; to go back</p>
+            <div className="flex gap-2 py-2">
+              <button
+                onClick={handleRetry}
+                className="flex-1 rounded-xl border border-accent/20 bg-accent/10 py-3 text-sm font-bold text-accent transition-all hover:bg-accent/20 active:scale-[0.98]"
+              >
+                Retry Scenario
+              </button>
+              <button
+                onClick={handleNext}
+                className="flex-1 rounded-xl border border-border bg-surface-tertiary py-3 text-sm font-bold text-text-secondary transition-all hover:bg-surface-secondary active:scale-[0.98]"
+              >
+                Back to List
+              </button>
             </div>
           )}
         </div>
@@ -449,10 +473,23 @@ export default function ChallengesPage() {
           </button>
         )}
         {gauntletCompleted === 5 && (
-          <div className="mt-3 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 text-center">
-            <p className="text-xs font-bold text-accent">
-              Gauntlet Complete! {gauntletWins}/5 wins ({formatCurrency(gauntletPnl)} P&L)
-            </p>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex-1 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 text-center">
+              <p className="text-xs font-bold text-accent">
+                Complete! {gauntletWins}/5 wins ({formatCurrency(gauntletPnl)} P&L)
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const newResults = { ...scenarioResults };
+                gauntletScenarios.forEach((s) => delete newResults[s.id]);
+                setScenarioResults(newResults);
+                localStorage.setItem("swipetrade-scenario-results", JSON.stringify(newResults));
+              }}
+              className="rounded-lg border border-border bg-surface-tertiary px-3 py-2 text-[10px] font-bold text-text-muted hover:text-text-secondary"
+            >
+              Reset
+            </button>
           </div>
         )}
       </div>
