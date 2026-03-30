@@ -4,6 +4,7 @@ import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useHydration } from "@/hooks/useHydration";
 import { useAuth } from "@/hooks/useAuth";
 import TradeHistory from "@/components/portfolio/TradeHistory";
+import EquityCurve from "@/components/portfolio/EquityCurve";
 import SignInButton from "@/components/auth/SignInButton";
 import { formatCurrency, cn } from "@/lib/utils";
 
@@ -118,6 +119,9 @@ export default function ProfilePage() {
           color={bestStreak >= 5 ? "profit" : undefined}
         />
       </div>
+
+      {/* Equity curve */}
+      <EquityCurve trades={trades} />
 
       {/* Trade history */}
       <div className="mt-6">

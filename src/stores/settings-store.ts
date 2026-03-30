@@ -11,11 +11,15 @@ interface SettingsStore {
   selectedTimeframe: TimeFrame | null; // null = random for asset type
   enabledIndicators: IndicatorId[];
   theme: "dark" | "light";
+  revealSpeed: 1 | 2 | 4;
+  soundEnabled: boolean;
 
   setSelectedAsset: (asset: Asset | null) => void;
   setSelectedTimeframe: (tf: TimeFrame | null) => void;
   toggleIndicator: (id: IndicatorId) => void;
   setTheme: (theme: "dark" | "light") => void;
+  setRevealSpeed: (speed: 1 | 2 | 4) => void;
+  setSoundEnabled: (enabled: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -25,6 +29,8 @@ export const useSettingsStore = create<SettingsStore>()(
       selectedTimeframe: null,
       enabledIndicators: [],
       theme: "dark",
+      revealSpeed: 1,
+      soundEnabled: true,
 
       setSelectedAsset: (asset) => set({ selectedAsset: asset }),
       setSelectedTimeframe: (tf) => set({ selectedTimeframe: tf }),
@@ -35,6 +41,8 @@ export const useSettingsStore = create<SettingsStore>()(
             : [...state.enabledIndicators, id],
         })),
       setTheme: (theme) => set({ theme }),
+      setRevealSpeed: (speed) => set({ revealSpeed: speed }),
+      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
     }),
     {
       name: "swipetrade-settings",

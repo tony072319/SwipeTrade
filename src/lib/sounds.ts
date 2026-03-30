@@ -1,7 +1,13 @@
 let audioContext: AudioContext | null = null;
+let _soundEnabled = true;
+
+export function setSoundEnabled(enabled: boolean) {
+  _soundEnabled = enabled;
+}
 
 function getContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
+  if (!_soundEnabled) return null;
   if (!audioContext) {
     audioContext = new AudioContext();
   }

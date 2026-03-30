@@ -14,6 +14,8 @@ import { calculateBollinger } from "@/lib/indicators/bollinger";
 import type { Direction } from "@/types/trade";
 import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
 import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
+import { cn } from "@/lib/utils";
+import { setSoundEnabled } from "@/lib/sounds";
 import ChartReveal from "@/components/chart/ChartReveal";
 import ChartOverlay from "@/components/chart/ChartOverlay";
 import SwipeHandler from "@/components/game/SwipeHandler";
@@ -50,12 +52,20 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     selectedAsset,
     selectedTimeframe,
     enabledIndicators,
+    revealSpeed,
+    soundEnabled,
     setSelectedAsset,
     setSelectedTimeframe,
+    setRevealSpeed,
   } = useSettingsStore();
 
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [indicatorOpen, setIndicatorOpen] = useState(false);
+
+  // Sync sound setting
+  useEffect(() => {
+    if (hydrated) setSoundEnabled(soundEnabled);
+  }, [hydrated, soundEnabled]);
 
   // Compute indicator data from all candles
   const { visibleIndicatorData, hiddenIndicatorData } = useMemo(() => {
@@ -291,6 +301,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                   enabledIndicators={hydrated ? enabledIndicators : []}
                   visibleIndicatorData={visibleIndicatorData}
                   hiddenIndicatorData={hiddenIndicatorData}
+                  revealSpeed={hydrated ? revealSpeed : 1}
                 />
               </div>
             </SwipeHandler>
@@ -312,12 +323,31 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 onChange={setLeverage}
                 disabled={phase !== "viewing"}
               />
-              <button
-                onClick={() => setIndicatorOpen(true)}
-                className="rounded-lg bg-surface-tertiary px-3 py-2 text-xs font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
-              >
-                Indicators
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Speed selector */}
+                <div className="flex items-center gap-1">
+                  {([1, 2, 4] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setRevealSpeed(s)}
+                      className={cn(
+                        "rounded-md px-1.5 py-1 text-[10px] font-bold transition-all",
+                        revealSpeed === s
+                          ? "bg-accent text-white"
+                          : "bg-surface-tertiary text-text-muted",
+                      )}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setIndicatorOpen(true)}
+                  className="rounded-lg bg-surface-tertiary px-3 py-2 text-xs font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
+                >
+                  Indicators
+                </button>
+              </div>
             </div>
             <div className="flex gap-2">
               <button

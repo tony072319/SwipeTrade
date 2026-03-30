@@ -27,6 +27,7 @@ interface ChartRevealProps {
   enabledIndicators?: IndicatorId[];
   visibleIndicatorData?: IndicatorData;
   hiddenIndicatorData?: IndicatorData;
+  revealSpeed?: 1 | 2 | 4;
 }
 
 function candleToLW(candle: Candle): CandlestickData<Time> {
@@ -53,6 +54,7 @@ export default function ChartReveal({
   enabledIndicators = [],
   visibleIndicatorData,
   hiddenIndicatorData,
+  revealSpeed = 1,
 }: ChartRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rsiContainerRef = useRef<HTMLDivElement>(null);
@@ -557,7 +559,7 @@ export default function ChartReveal({
 
       revealIndexRef.current++;
       setRevealedCount(revealIndexRef.current);
-    }, CANDLE_REVEAL_INTERVAL_MS);
+    }, CANDLE_REVEAL_INTERVAL_MS / revealSpeed);
 
     return () => {
       if (intervalRef.current) {
@@ -565,7 +567,7 @@ export default function ChartReveal({
         intervalRef.current = null;
       }
     };
-  }, [revealing, hiddenCandles, hiddenIndicatorData, handleRevealComplete]);
+  }, [revealing, hiddenCandles, hiddenIndicatorData, handleRevealComplete, revealSpeed]);
 
   return (
     <div className="relative flex h-full w-full flex-col">
