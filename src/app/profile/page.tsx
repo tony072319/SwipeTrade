@@ -2,14 +2,25 @@
 
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useHydration } from "@/hooks/useHydration";
+import { useAuth } from "@/hooks/useAuth";
 import TradeHistory from "@/components/portfolio/TradeHistory";
+import SignInButton from "@/components/auth/SignInButton";
 import { formatCurrency, cn } from "@/lib/utils";
-import { STARTING_BALANCE } from "@/lib/game/constants";
 
 export default function ProfilePage() {
   const hydrated = useHydration();
-  const { balance, trades, totalTrades, winningTrades, totalPnl, bestTrade, worstTrade, currentStreak, resetPortfolio } =
-    usePortfolioStore();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const {
+    balance,
+    trades,
+    totalTrades,
+    winningTrades,
+    totalPnl,
+    bestTrade,
+    worstTrade,
+    currentStreak,
+    resetPortfolio,
+  } = usePortfolioStore();
 
   const winRate = totalTrades > 0 ? winningTrades / totalTrades : 0;
 
@@ -26,8 +37,39 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="border-b border-border px-4 py-4">
         <h1 className="text-xl font-bold">Profile</h1>
-        <p className="mt-0.5 text-xs text-text-muted">Guest Account</p>
+        {user ? (
+          <div className="mt-1 flex items-center gap-2">
+            {user.user_metadata?.avatar_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.user_metadata.avatar_url}
+                alt=""
+                className="h-5 w-5 rounded-full"
+              />
+            )}
+            <p className="text-xs text-text-secondary">
+              {user.user_metadata?.full_name ?? user.email}
+            </p>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-xs text-text-muted">Guest Account</p>
+        )}
       </div>
+
+      {/* Auth prompt for guests */}
+      {!authLoading && !user && (
+        <div className="mx-4 mt-4 rounded-2xl border border-border bg-surface-secondary p-4 text-center">
+          <p className="text-sm font-medium text-text-primary">
+            Sign in to save your progress
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            Sync across devices and compete on leaderboards
+          </p>
+          <div className="mt-3">
+            <SignInButton size="sm" />
+          </div>
+        </div>
+      )}
 
       {/* Balance card */}
       <div className="mx-4 mt-4 rounded-2xl border border-border bg-surface-secondary p-5">
@@ -88,12 +130,16 @@ export default function ProfilePage() {
         <TradeHistory trades={trades} />
       </div>
 
-      {/* Reset button */}
-      {totalTrades > 0 && (
-        <div className="mx-4 mt-6 pb-4">
+      {/* Actions */}
+      <div className="mx-4 mt-6 space-y-3 pb-4">
+        {totalTrades > 0 && (
           <button
             onClick={() => {
-              if (confirm("Reset your portfolio to $10,000? This cannot be undone.")) {
+              if (
+                confirm(
+                  "Reset your portfolio to $10,000? This cannot be undone.",
+                )
+              ) {
                 resetPortfolio();
               }
             }}
@@ -101,8 +147,17 @@ export default function ProfilePage() {
           >
             Reset Portfolio
           </button>
-        </div>
-      )}
+        )}
+
+        {user && (
+          <button
+            onClick={signOut}
+            className="w-full rounded-xl border border-border py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-secondary"
+          >
+            Sign Out
+          </button>
+        )}
+      </div>
     </main>
   );
 }
