@@ -98,12 +98,31 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats grid */}
-      <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-        <StatCard label="Total Trades" value={totalTrades.toString()} />
+      <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
+        <StatCard label="Trades" value={totalTrades.toString()} />
         <StatCard
           label="Win Rate"
           value={`${(winRate * 100).toFixed(1)}%`}
           color={winRate >= 0.5 ? "profit" : winRate > 0 ? "loss" : undefined}
+        />
+        <StatCard
+          label="Profit Factor"
+          value={(() => {
+            const wins = trades.filter((t) => t.pnl > 0);
+            const losses = trades.filter((t) => t.pnl < 0);
+            const totalWins = wins.reduce((s, t) => s + t.pnl, 0);
+            const totalLosses = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+            if (totalLosses === 0) return wins.length > 0 ? "∞" : "-";
+            return (totalWins / totalLosses).toFixed(2);
+          })()}
+          color={(() => {
+            const wins = trades.filter((t) => t.pnl > 0);
+            const losses = trades.filter((t) => t.pnl < 0);
+            const totalWins = wins.reduce((s, t) => s + t.pnl, 0);
+            const totalLosses = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
+            if (totalLosses === 0) return wins.length > 0 ? "profit" as const : undefined;
+            return totalWins / totalLosses >= 1 ? "profit" as const : "loss" as const;
+          })()}
         />
         <StatCard
           label="Best Trade"
@@ -116,7 +135,12 @@ export default function ProfilePage() {
           color={worstTrade < 0 ? "loss" : undefined}
         />
         <StatCard
-          label="Current Streak"
+          label="Avg Trade"
+          value={totalTrades > 0 ? `${totalPnl / totalTrades >= 0 ? "+" : ""}${formatCurrency(totalPnl / totalTrades)}` : "-"}
+          color={totalTrades > 0 ? (totalPnl >= 0 ? "profit" : "loss") : undefined}
+        />
+        <StatCard
+          label="Streak"
           value={currentStreak > 0 ? `${currentStreak}W` : "0"}
           color={currentStreak >= 3 ? "profit" : undefined}
         />
@@ -124,6 +148,14 @@ export default function ProfilePage() {
           label="Best Streak"
           value={bestStreak > 0 ? `${bestStreak}W` : "0"}
           color={bestStreak >= 5 ? "profit" : undefined}
+        />
+        <StatCard
+          label="Long/Short"
+          value={(() => {
+            const longs = trades.filter((t) => t.direction === "long").length;
+            const shorts = trades.filter((t) => t.direction === "short").length;
+            return totalTrades > 0 ? `${longs}/${shorts}` : "-";
+          })()}
         />
       </div>
 
@@ -318,11 +350,11 @@ function StatCard({
   color?: "profit" | "loss";
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface-secondary p-3">
-      <p className="text-[10px] uppercase text-text-muted">{label}</p>
+    <div className="rounded-xl border border-border bg-surface-secondary p-2.5">
+      <p className="text-[9px] uppercase text-text-muted">{label}</p>
       <p
         className={cn(
-          "mt-1 text-lg font-bold tabular-nums",
+          "mt-0.5 text-sm font-bold tabular-nums truncate",
           color === "profit" && "text-profit",
           color === "loss" && "text-loss",
           !color && "text-text-primary",

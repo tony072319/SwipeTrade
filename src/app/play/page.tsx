@@ -6,6 +6,7 @@ import PortfolioBar from "@/components/portfolio/PortfolioBar";
 import TutorialOverlay from "@/components/game/TutorialOverlay";
 import AchievementToast from "@/components/game/AchievementToast";
 import Confetti from "@/components/game/Confetti";
+import KeyboardHelp from "@/components/game/KeyboardHelp";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -117,6 +118,9 @@ export default function PlayPage() {
 
       {/* Confetti for big wins */}
       <Confetti active={showConfetti} intensity={confettiIntensity} />
+
+      {/* Keyboard shortcuts help */}
+      <KeyboardHelp />
 
       {/* Portfolio header */}
       <PortfolioBar
