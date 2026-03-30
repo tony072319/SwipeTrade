@@ -2,9 +2,11 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAccentColor } from "@/hooks/useAccentColor";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function ClientProviders({ children }: { children: ReactNode }) {
   useAccentColor();
+  useTheme();
 
   // Register service worker
   useEffect(() => {

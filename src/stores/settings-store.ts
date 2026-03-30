@@ -34,6 +34,7 @@ interface SettingsStore {
   soundEnabled: boolean;
   accentColor: AccentColor;
   difficulty: Difficulty;
+  hapticEnabled: boolean;
   betFraction: number;
   recentAssets: string[]; // symbol list, most recent first
   favoriteAssets: string[]; // symbol list
@@ -45,6 +46,7 @@ interface SettingsStore {
   setRevealSpeed: (speed: 1 | 2 | 4) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setAccentColor: (color: AccentColor) => void;
+  setHapticEnabled: (enabled: boolean) => void;
   setDifficulty: (d: Difficulty) => void;
   setBetFraction: (f: number) => void;
   addRecentAsset: (symbol: string) => void;
@@ -60,6 +62,7 @@ export const useSettingsStore = create<SettingsStore>()(
       theme: "dark",
       revealSpeed: 1,
       soundEnabled: true,
+      hapticEnabled: true,
       accentColor: "indigo",
       difficulty: "normal",
       betFraction: 0.1,
@@ -77,6 +80,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setTheme: (theme) => set({ theme }),
       setRevealSpeed: (speed) => set({ revealSpeed: speed }),
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+      setHapticEnabled: (enabled) => set({ hapticEnabled: enabled }),
       setAccentColor: (color) => set({ accentColor: color }),
       setDifficulty: (d) => set({ difficulty: d }),
       setBetFraction: (f) => set({ betFraction: f }),

@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from "react";
 
-const CURRENT_VERSION = "1.3.0";
+const CURRENT_VERSION = "1.4.0";
 
 const UPDATES = [
-  "Trading Quiz: 10-question test on Learn page",
-  "Market Sentiment: Bullish/Bearish/Neutral indicator on charts",
-  "Streak Milestones: Special celebrations at 3, 5, 7, 10+ wins",
-  "Trade Details: Tap trades in history for full breakdown",
-  "Session Recap: See your last session stats when you return",
-  "Quick Stats: Tap balance in play mode for instant overview",
-  "Performance Breakdown: Analyze by asset, timeframe, or direction",
-  "Daily Challenge: Progressive difficulty (rounds get harder)",
-  "Improved Swipe: Better visual feedback with arrows",
-  "Accessibility: Reduced motion support, keyboard focus styles",
+  "Dark/Light Theme: Switch between dark and light modes in Settings",
+  "Activity Calendar: GitHub-style heatmap of your trading activity",
+  "Chart % Change: See price change percentage on chart overlay",
+  "Haptic Toggle: Control vibration feedback in Settings",
+  "Portfolio Milestones: Celebrations at $15k, $20k, $50k, $100k",
+  "Motivational Messages: Context-aware encouragement and tips",
+  "Trade Notes: Add personal notes to any trade in history",
+  "Risk Metrics: Sharpe Ratio, Max Drawdown, Expectancy analysis",
+  "Empty States: Better onboarding for new users on profile",
+  "Challenge Scenarios: 6 curated trading situations to practice",
 ];
 
 export default function WhatsNew() {

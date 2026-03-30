@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { TradeResult as TradeResultType } from "@/types/trade";
 import { usePortfolioStore } from "@/stores/portfolio-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
 import { playWinSound, playLossSound } from "@/lib/sounds";
 
@@ -45,11 +46,12 @@ export default function TradeResult({
   const [animatedPnl, setAnimatedPnl] = useState(0);
   const [visible, setVisible] = useState(false);
   const currentStreak = usePortfolioStore((s) => s.currentStreak);
+  const hapticEnabled = useSettingsStore((s) => s.hapticEnabled);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50);
     // Haptic + sound feedback on result
-    if (navigator.vibrate) {
+    if (hapticEnabled && navigator.vibrate) {
       navigator.vibrate(result.isWin ? [50, 30, 50] : [100]);
     }
     if (result.isWin) playWinSound();

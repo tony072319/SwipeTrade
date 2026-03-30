@@ -35,6 +35,19 @@ export default function ChartOverlay({
         <span className="rounded-lg bg-surface-secondary/90 px-2 py-1 text-[10px] font-bold uppercase text-text-muted backdrop-blur-sm border border-glass-border">
           {asset.type}
         </span>
+        {candles && candles.length > 1 && (() => {
+          const first = candles[0].open;
+          const last = candles[candles.length - 1].close;
+          const pctChange = ((last - first) / first) * 100;
+          const isUp = pctChange >= 0;
+          return (
+            <span className={`rounded-lg px-2 py-1 text-[10px] font-bold tabular-nums backdrop-blur-sm border ${
+              isUp ? "bg-profit/10 text-profit border-profit/20" : "bg-loss/10 text-loss border-loss/20"
+            }`}>
+              {isUp ? "+" : ""}{pctChange.toFixed(2)}%
+            </span>
+          );
+        })()}
       </div>
       {candles && candles.length > 10 && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">

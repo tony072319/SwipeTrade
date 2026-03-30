@@ -11,6 +11,7 @@ import WinRateChart from "@/components/portfolio/WinRateChart";
 import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
+import TradeCalendar from "@/components/portfolio/TradeCalendar";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
@@ -123,6 +124,27 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Empty state for new users */}
+      {totalTrades === 0 && (
+        <div className="mx-4 mt-6 rounded-2xl border border-border bg-surface-secondary p-6 text-center">
+          <div className="text-4xl mb-3 opacity-60">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto text-text-muted">
+              <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-text-primary">No trades yet</h3>
+          <p className="mt-1 text-xs text-text-muted max-w-[240px] mx-auto">
+            Start trading to build your portfolio and unlock achievements. Your stats will appear here.
+          </p>
+          <a
+            href="/play"
+            className="mt-4 inline-block rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-accent/90"
+          >
+            Start Trading
+          </a>
+        </div>
+      )}
+
       {/* Stats grid */}
       <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
         <StatCard label="Trades" value={totalTrades.toString()} />
@@ -184,6 +206,9 @@ export default function ProfilePage() {
           })()}
         />
       </div>
+
+      {/* Trade activity calendar */}
+      <TradeCalendar trades={trades} />
 
       {/* Weekly summary */}
       <WeeklySummary trades={trades} />
@@ -261,12 +286,44 @@ export default function ProfilePage() {
 }
 
 function SettingsSection() {
-  const { soundEnabled, revealSpeed, accentColor, difficulty, setSoundEnabled, setRevealSpeed, setAccentColor, setDifficulty } = useSettingsStore();
+  const { soundEnabled, hapticEnabled, revealSpeed, accentColor, difficulty, theme, setSoundEnabled, setHapticEnabled, setRevealSpeed, setAccentColor, setDifficulty, setTheme } = useSettingsStore();
 
   return (
     <div className="mx-4 mt-6">
       <h2 className="text-sm font-semibold text-text-primary mb-3">Settings</h2>
       <div className="space-y-2">
+        {/* Theme toggle */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Theme</p>
+            <p className="text-[10px] text-text-muted">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setTheme("dark")}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-bold transition-all",
+                theme === "dark"
+                  ? "bg-accent text-white"
+                  : "bg-surface-tertiary text-text-muted",
+              )}
+            >
+              Dark
+            </button>
+            <button
+              onClick={() => setTheme("light")}
+              className={cn(
+                "rounded-md px-2.5 py-1 text-xs font-bold transition-all",
+                theme === "light"
+                  ? "bg-accent text-white"
+                  : "bg-surface-tertiary text-text-muted",
+              )}
+            >
+              Light
+            </button>
+          </div>
+        </div>
+
         {/* Sound toggle */}
         <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
           <div>
@@ -283,6 +340,26 @@ function SettingsSection() {
             <div className={cn(
               "h-6 w-6 rounded-full bg-white shadow transition-transform",
               soundEnabled ? "translate-x-5" : "translate-x-0",
+            )} />
+          </button>
+        </div>
+
+        {/* Haptic feedback */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-secondary px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Haptic Feedback</p>
+            <p className="text-[10px] text-text-muted">Vibrate on swipes and results</p>
+          </div>
+          <button
+            onClick={() => setHapticEnabled(!hapticEnabled)}
+            className={cn(
+              "h-6 w-11 rounded-full transition-colors",
+              hapticEnabled ? "bg-accent" : "bg-border",
+            )}
+          >
+            <div className={cn(
+              "h-6 w-6 rounded-full bg-white shadow transition-transform",
+              hapticEnabled ? "translate-x-5" : "translate-x-0",
             )} />
           </button>
         </div>

@@ -85,29 +85,35 @@ export default function ChartReveal({
     const container = containerRef.current;
     if (!container) return;
 
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    const gridColor = isLight ? "#94a3b820" : "#1e293b30";
+    const borderColor = isLight ? "#cbd5e1" : "#1e293b";
+    const textColor = isLight ? "#64748b" : "#64748b";
+    const crosshairColor = isLight ? "#47556940" : "#64748b40";
+
     const chartOptions = {
       width: container.clientWidth,
       height: container.clientHeight,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#64748b",
+        textColor,
         fontFamily: "Inter, system-ui, sans-serif",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "#1e293b30" },
-        horzLines: { color: "#1e293b30" },
+        vertLines: { color: gridColor },
+        horzLines: { color: gridColor },
       },
       crosshair: {
-        vertLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
-        horzLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
+        vertLine: { color: crosshairColor, width: 1 as LineWidth, style: 3 },
+        horzLine: { color: crosshairColor, width: 1 as LineWidth, style: 3 },
       },
       rightPriceScale: {
-        borderColor: "#1e293b",
+        borderColor,
         scaleMargins: { top: 0.05, bottom: 0.05 },
       },
       timeScale: {
-        borderColor: "#1e293b",
+        borderColor,
         timeVisible: true,
         secondsVisible: false,
       },
@@ -261,16 +267,16 @@ export default function ChartReveal({
         height: 80,
         layout: {
           background: { type: ColorType.Solid, color: "transparent" },
-          textColor: "#64748b",
+          textColor,
           fontFamily: "Inter, system-ui, sans-serif",
           fontSize: 10,
         },
         grid: {
-          vertLines: { color: "#1e293b20" },
-          horzLines: { color: "#1e293b20" },
+          vertLines: { color: isLight ? "#94a3b815" : "#1e293b20" },
+          horzLines: { color: isLight ? "#94a3b815" : "#1e293b20" },
         },
         rightPriceScale: {
-          borderColor: "#1e293b",
+          borderColor,
           scaleMargins: { top: 0.05, bottom: 0.05 },
         },
         timeScale: { visible: false },
@@ -278,7 +284,7 @@ export default function ChartReveal({
         handleScale: false,
         crosshair: {
           vertLine: { visible: false },
-          horzLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
+          horzLine: { color: crosshairColor, width: 1 as LineWidth, style: 3 },
         },
       });
 
@@ -315,16 +321,16 @@ export default function ChartReveal({
         height: 80,
         layout: {
           background: { type: ColorType.Solid, color: "transparent" },
-          textColor: "#64748b",
+          textColor,
           fontFamily: "Inter, system-ui, sans-serif",
           fontSize: 10,
         },
         grid: {
-          vertLines: { color: "#1e293b20" },
-          horzLines: { color: "#1e293b20" },
+          vertLines: { color: isLight ? "#94a3b815" : "#1e293b20" },
+          horzLines: { color: isLight ? "#94a3b815" : "#1e293b20" },
         },
         rightPriceScale: {
-          borderColor: "#1e293b",
+          borderColor,
           scaleMargins: { top: 0.1, bottom: 0.1 },
         },
         timeScale: { visible: false },
@@ -332,7 +338,7 @@ export default function ChartReveal({
         handleScale: false,
         crosshair: {
           vertLine: { visible: false },
-          horzLine: { color: "#64748b40", width: 1 as LineWidth, style: 3 },
+          horzLine: { color: crosshairColor, width: 1 as LineWidth, style: 3 },
         },
       });
 

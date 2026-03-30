@@ -3,6 +3,7 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import type { Direction } from "@/types/trade";
 import { playSwipeSound } from "@/lib/sounds";
+import { useSettingsStore } from "@/stores/settings-store";
 
 interface SwipeState {
   swiping: boolean;
@@ -87,7 +88,7 @@ export function useSwipe({
       swipedRef.current = true;
       updateState({ swiping: false, deltaX, direction });
       // Haptic + sound feedback on swipe
-      if (navigator.vibrate) navigator.vibrate(30);
+      if (useSettingsStore.getState().hapticEnabled && navigator.vibrate) navigator.vibrate(30);
       playSwipeSound();
       // Call onSwipe outside of setState to avoid "setState during render" error
       setTimeout(() => onSwipe?.(direction), 0);
