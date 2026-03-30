@@ -12,6 +12,7 @@ import ShareCard from "@/components/portfolio/ShareCard";
 import PnlDistribution from "@/components/portfolio/PnlDistribution";
 import DataExport from "@/components/portfolio/DataExport";
 import WeeklySummary from "@/components/portfolio/WeeklySummary";
+import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -83,19 +84,26 @@ export default function ProfilePage() {
 
       {/* Balance card */}
       <div className="mx-4 mt-4 rounded-2xl border border-border bg-surface-secondary p-5">
-        <p className="text-xs uppercase text-text-muted">Portfolio Value</p>
-        <p className="mt-1 text-3xl font-black tabular-nums text-text-primary">
-          {formatCurrency(balance)}
-        </p>
-        <p
-          className={cn(
-            "mt-1 text-sm font-medium tabular-nums",
-            totalPnl >= 0 ? "text-profit" : "text-loss",
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs uppercase text-text-muted">Portfolio Value</p>
+            <p className="mt-1 text-3xl font-black tabular-nums text-text-primary">
+              {formatCurrency(balance)}
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-sm font-medium tabular-nums",
+                totalPnl >= 0 ? "text-profit" : "text-loss",
+              )}
+            >
+              {totalPnl >= 0 ? "+" : ""}
+              {formatCurrency(totalPnl)} all time
+            </p>
+          </div>
+          {trades.length >= 2 && (
+            <BalanceSparkline trades={trades} />
           )}
-        >
-          {totalPnl >= 0 ? "+" : ""}
-          {formatCurrency(totalPnl)} all time
-        </p>
+        </div>
       </div>
 
       {/* Stats grid */}

@@ -38,6 +38,12 @@
       "short_name": "Speed",
       "url": "/speed",
       "description": "60-second trading challenge"
+    },
+    {
+      "name": "Challenge Scenarios",
+      "short_name": "Challenges",
+      "url": "/challenges",
+      "description": "Practice specific trading situations"
     }
   ]
 }

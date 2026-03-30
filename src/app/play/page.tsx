@@ -11,6 +11,7 @@ import TradingTip from "@/components/game/TradingTip";
 import StreakMilestone from "@/components/game/StreakMilestone";
 import QuickStats from "@/components/portfolio/QuickStats";
 import SessionSummary from "@/components/game/SessionSummary";
+import MotivationalMessage from "@/components/game/MotivationalMessage";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
 import { useHydration } from "@/hooks/useHydration";
@@ -152,6 +153,9 @@ export default function PlayPage() {
         flash={flash}
         onBalanceTap={() => setQuickStatsOpen(true)}
       />
+
+      {/* Motivational message */}
+      <MotivationalMessage />
 
       {/* Game area */}
       <div className="relative min-h-0 flex-1">
