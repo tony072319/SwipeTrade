@@ -1,19 +1,43 @@
 {
-  "name": "SwipeTrade",
+  "name": "SwipeTrade — Chart Prediction Game",
   "short_name": "SwipeTrade",
-  "description": "Chart prediction trading game — read the chart, swipe to trade",
+  "description": "Practice reading charts and making split-second Long/Short calls on real historical price data. Trade crypto and stocks risk-free!",
   "start_url": "/play",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0b0f1a",
   "theme_color": "#0b0f1a",
   "orientation": "portrait",
   "categories": ["games", "finance", "education"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Free Play",
+      "short_name": "Play",
+      "url": "/play",
+      "description": "Start free trading"
+    },
+    {
+      "name": "Daily Challenge",
+      "short_name": "Daily",
+      "url": "/daily",
+      "description": "Today's challenge"
+    },
+    {
+      "name": "Speed Round",
+      "short_name": "Speed",
+      "url": "/speed",
+      "description": "60-second trading challenge"
     }
   ]
 }
