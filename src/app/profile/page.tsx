@@ -21,6 +21,7 @@ import WeeklySummary from "@/components/portfolio/WeeklySummary";
 import BalanceSparkline from "@/components/portfolio/BalanceSparkline";
 import RiskMetrics from "@/components/portfolio/RiskMetrics";
 import AssetBreakdown from "@/components/portfolio/AssetBreakdown";
+import TimeframeBreakdown from "@/components/portfolio/TimeframeBreakdown";
 import SignInButton from "@/components/auth/SignInButton";
 import { useSettingsStore, ACCENT_COLORS, DIFFICULTY_CONFIG, type AccentColor, type Difficulty } from "@/stores/settings-store";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -245,6 +246,9 @@ export default function ProfilePage() {
 
       {/* Asset breakdown */}
       <AssetBreakdown />
+
+      {/* Timeframe & direction breakdown */}
+      <TimeframeBreakdown />
 
       {/* Performance by asset */}
       <PerformanceBreakdown trades={trades} />

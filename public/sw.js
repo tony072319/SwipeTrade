@@ -1,4 +1,4 @@
-const CACHE_NAME = "swipetrade-v2";
+const CACHE_NAME = "swipetrade-v3";
 const STATIC_ASSETS = ["/", "/play", "/daily", "/profile", "/learn", "/speed", "/challenges", "/leaderboard"];
 
 self.addEventListener("install", (event) => {
@@ -44,10 +44,21 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          // Cache static assets
-          if (response.ok && request.url.includes("/_next/static/")) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          // Cache JS, CSS, fonts, and images for offline support
+          if (response.ok) {
+            const url = request.url;
+            const shouldCache =
+              url.includes("/_next/static/") ||
+              url.endsWith(".js") ||
+              url.endsWith(".css") ||
+              url.endsWith(".woff2") ||
+              url.endsWith(".svg") ||
+              url.endsWith(".png") ||
+              url.endsWith(".ico");
+            if (shouldCache) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
           }
           return response;
         });
