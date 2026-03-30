@@ -9,6 +9,7 @@ import { formatCurrency, cn } from "@/lib/utils";
 import ChartReveal from "@/components/chart/ChartReveal";
 import SwipeHandler from "@/components/game/SwipeHandler";
 import type { Direction } from "@/types/trade";
+import { useSpeedHighScore } from "@/hooks/useSpeedHighScore";
 import Link from "next/link";
 
 const SPEED_ROUND_TIME = 60; // seconds
@@ -44,7 +45,9 @@ export default function SpeedPage() {
   const [roundCount, setRoundCount] = useState(0);
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { highScore, recordGame, isNewRecord: checkNewRecord } = useSpeedHighScore();
 
   // Timer
   useEffect(() => {
@@ -65,12 +68,19 @@ export default function SpeedPage() {
     };
   }, [gameState]);
 
-  // Stop timer when finished
+  // Stop timer and record score when finished
   useEffect(() => {
-    if (gameState === "finished" && timerRef.current) {
-      clearInterval(timerRef.current);
+    if (gameState === "finished") {
+      if (timerRef.current) clearInterval(timerRef.current);
+      // Record high score after state updates
+      setTimeout(() => {
+        const wins = trades.filter((t) => t.pnl > 0).length;
+        const wr = trades.length > 0 ? wins / trades.length : 0;
+        setIsNewRecord(checkNewRecord(totalPnl));
+        recordGame(totalPnl, trades.length, bestCombo, wr);
+      }, 100);
     }
-  }, [gameState]);
+  }, [gameState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (chartData && !loading) setChart(chartData);
@@ -95,6 +105,7 @@ export default function SpeedPage() {
     setRoundCount(0);
     setCombo(0);
     setBestCombo(0);
+    setIsNewRecord(false);
     reset();
     fetchChart();
   }, [reset, fetchChart]);
@@ -189,11 +200,37 @@ export default function SpeedPage() {
             <span>Auto-advance</span>
           </div>
 
+          {highScore.gamesPlayed > 0 && (
+            <div className="mt-6 grid grid-cols-2 gap-2 w-full max-w-xs mx-auto">
+              <div className="rounded-xl border border-border bg-surface-secondary p-2.5 text-center">
+                <p className="text-[8px] uppercase text-text-muted">Best P&L</p>
+                <p className={cn(
+                  "text-sm font-black tabular-nums",
+                  highScore.bestPnl >= 0 ? "text-profit" : "text-loss",
+                )}>
+                  {highScore.bestPnl >= 0 ? "+" : ""}{formatCurrency(highScore.bestPnl)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-secondary p-2.5 text-center">
+                <p className="text-[8px] uppercase text-text-muted">Best Combo</p>
+                <p className="text-sm font-black text-accent tabular-nums">{highScore.bestCombo}x</p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-secondary p-2.5 text-center">
+                <p className="text-[8px] uppercase text-text-muted">Most Trades</p>
+                <p className="text-sm font-black tabular-nums">{highScore.bestTradeCount}</p>
+              </div>
+              <div className="rounded-xl border border-border bg-surface-secondary p-2.5 text-center">
+                <p className="text-[8px] uppercase text-text-muted">Games Played</p>
+                <p className="text-sm font-black tabular-nums">{highScore.gamesPlayed}</p>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={handleStart}
-            className="mt-8 rounded-2xl bg-accent px-12 py-4 text-base font-bold text-white shadow-lg shadow-accent/30 transition-all hover:bg-accent/90 active:scale-[0.98]"
+            className="mt-6 rounded-2xl bg-accent px-12 py-4 text-base font-bold text-white shadow-lg shadow-accent/30 transition-all hover:bg-accent/90 active:scale-[0.98]"
           >
-            GO!
+            {highScore.gamesPlayed > 0 ? "Play Again" : "GO!"}
           </button>
           <p className="mt-2 text-[10px] text-text-muted">Press Space to start</p>
         </div>
@@ -213,6 +250,9 @@ export default function SpeedPage() {
         </div>
 
         <div className="mx-4 mt-6 rounded-2xl border border-accent/20 bg-accent-bg p-6 text-center">
+          {isNewRecord && (
+            <p className="text-xs font-black text-profit mb-1 animate-bounce-in">NEW RECORD!</p>
+          )}
           <p className="text-[10px] font-bold uppercase tracking-widest text-accent">Final P&L</p>
           <p className={cn(
             "mt-2 text-4xl font-black tabular-nums",
