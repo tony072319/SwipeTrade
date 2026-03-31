@@ -117,6 +117,41 @@ export async function fetchYahooOHLCV(
     return true;
   });
 
+  // Fix OHLC integrity: clamp high/low to not exceed neighbors by >10x body
+  // This removes the extreme spike wicks from bad Yahoo data
+  if (candles.length > 2) {
+    candles = candles.map((c, idx) => {
+      const body = Math.abs(c.close - c.open) || c.close * 0.001;
+      const maxBody = Math.max(c.open, c.close);
+      const minBody = Math.min(c.open, c.close);
+      // Clamp wicks: high can't be more than 5x body above maxBody
+      // and low can't be more than 5x body below minBody
+      const maxWick = Math.max(body * 5, c.close * 0.02);
+      const clampedHigh = Math.min(c.high, maxBody + maxWick);
+      const clampedLow = Math.max(c.low, minBody - maxWick);
+
+      // Also reject candles where range is >20% of price (likely data error)
+      const range = c.high - c.low;
+      if (range > c.close * 0.2) {
+        // Use neighboring candles to estimate reasonable high/low
+        const prev = candles[Math.max(0, idx - 1)];
+        const next = candles[Math.min(candles.length - 1, idx + 1)];
+        const refRange = Math.max(
+          Math.abs(prev.high - prev.low),
+          Math.abs(next.high - next.low),
+          c.close * 0.01,
+        );
+        return {
+          ...c,
+          high: Math.min(c.high, maxBody + refRange * 2),
+          low: Math.max(c.low, minBody - refRange * 2),
+        };
+      }
+
+      return { ...c, high: clampedHigh, low: clampedLow };
+    });
+  }
+
   if (timeframe === "4h") {
     candles = aggregateTo4h(candles);
   }

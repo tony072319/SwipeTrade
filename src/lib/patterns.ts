@@ -48,12 +48,16 @@ export function detectPatterns(candles: Candle[]): PatternMatch[] {
     const body = bodySize(c);
     const prevBody = bodySize(prev);
 
-    // Doji — very strict: true doji with meaningful wicks on both sides
+    // Doji — extremely strict to avoid false positives with flat data
+    // Body must be < 2% of range, range must be > 1% of price,
+    // both wicks must be substantial (> 3x body), and body must be non-trivial
+    const avgBody = candles.slice(Math.max(0, i - 5), i).reduce((s, x) => s + bodySize(x), 0) / Math.min(5, i);
     if (
-      body < range * 0.03 &&
-      range > c.close * 0.005 &&
-      upperWick(c) > body * 1.5 &&
-      lowerWick(c) > body * 1.5
+      body < range * 0.02 &&
+      range > c.close * 0.01 &&
+      upperWick(c) > body * 3 &&
+      lowerWick(c) > body * 3 &&
+      avgBody > body * 3 // surrounding candles must have bigger bodies (this IS a standout doji)
     ) {
       patterns.push({ name: "Doji", type: "neutral", index: i, strength: 1 });
     }
