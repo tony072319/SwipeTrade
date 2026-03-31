@@ -9,8 +9,8 @@ const DAYS_MAP: Record<TimeFrame, number> = {
   "1m": 1, // not supported well, fallback
   "5m": 1,
   "15m": 1,
-  "1h": 90,
-  "4h": 90,
+  "1h": 30,  // Use 30 days for OHLC endpoint (gives 4h candles we can use)
+  "4h": 30,
   "1D": 365,
 };
 
@@ -69,107 +69,41 @@ export async function fetchCoinGeckoOHLCV(
 
   const days = DAYS_MAP[timeframe];
 
-  if (timeframe === "1D") {
-    // Use OHLC endpoint for daily candles
-    const url = `${BASE_URL}/coins/${coingeckoId}/ohlc?vs_currency=usd&days=${days}`;
-    const res = await fetchWithRetry(url);
-
-    // Response: [[timestamp, open, high, low, close], ...]
-    const data: number[][] = await res.json();
-
-    if (!data || data.length === 0) {
-      throw new Error(`No OHLC data for ${coingeckoId}`);
-    }
-
-    const candles = data
-      .filter((row) => row.length >= 5 && row.every((v) => v > 0))
-      .map(([timestamp, open, high, low, close]) => ({
-        time: Math.floor(timestamp / 1000),
-        open,
-        high,
-        low,
-        close,
-      }));
-
-    if (candles.length > 0) {
-      candleCache.set(cacheKey, { data: candles, timestamp: Date.now() });
-    }
-
-    return candles;
-  }
-
-  // For hourly data, use market_chart endpoint and synthesize candles
-  const url = `${BASE_URL}/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}`;
+  // Use the OHLC endpoint for ALL timeframes — it returns proper candlestick data
+  // 1-2 days = 30min candles, 3-30 days = 4h candles, 31+ days = 4-day candles
+  const url = `${BASE_URL}/coins/${coingeckoId}/ohlc?vs_currency=usd&days=${days}`;
   const res = await fetchWithRetry(url);
 
-  const data: { prices: number[][] } = await res.json();
+  // Response: [[timestamp, open, high, low, close], ...]
+  const data: number[][] = await res.json();
 
-  if (!data.prices || data.prices.length === 0) {
-    throw new Error(`No price data for ${coingeckoId}`);
+  if (!data || data.length === 0) {
+    throw new Error(`No OHLC data for ${coingeckoId}`);
   }
 
-  // Synthesize OHLC candles from price points
-  // Group prices by hour
-  const hourlyBuckets = new Map<number, number[]>();
-  for (const [timestamp, price] of data.prices) {
-    if (price <= 0) continue; // skip invalid prices
-    const hourKey = Math.floor(timestamp / 3600000) * 3600; // round to hour in seconds
-    const bucket = hourlyBuckets.get(hourKey);
-    if (bucket) {
-      bucket.push(price);
-    } else {
-      hourlyBuckets.set(hourKey, [price]);
-    }
-  }
+  let candles: Candle[] = data
+    .filter((row) => row.length >= 5 && row.every((v) => v > 0))
+    .map(([timestamp, open, high, low, close]) => ({
+      time: Math.floor(timestamp / 1000),
+      open,
+      high,
+      low,
+      close,
+    }));
 
-  // Build candles from hourly buckets, ensuring proper OHLC shape
-  const sortedBuckets = Array.from(hourlyBuckets.entries()).sort(([a], [b]) => a - b);
-  let candles: Candle[] = sortedBuckets.map(([time, prices], bucketIdx) => {
-    let open = prices[0];
-    let close = prices[prices.length - 1];
-    let high = Math.max(...prices);
-    let low = Math.min(...prices);
-    const mid = (high + low) / 2 || open;
-
-    // CoinGecko hourly buckets often have 1-2 price points, creating
-    // flat candles that look like crosses. We need to infer volatility
-    // from neighboring buckets and create realistic OHLC shapes.
-    const range = high - low;
-    const body = Math.abs(close - open);
-
-    if (range < mid * 0.004 || body < mid * 0.001) {
-      // Look at neighboring buckets to estimate typical volatility
-      let neighborVol = mid * 0.005; // default 0.5% fallback
-      if (bucketIdx > 0) {
-        const prevPrices = sortedBuckets[bucketIdx - 1][1];
-        const prevClose = prevPrices[prevPrices.length - 1];
-        const move = Math.abs(open - prevClose);
-        if (move > neighborVol * 0.5) neighborVol = move * 1.5;
-      }
-
-      // Create realistic OHLC from the mid price with inferred volatility
-      const vol = Math.max(neighborVol, mid * 0.003);
-      // Deterministic direction based on bucket time (avoids all same direction)
-      const seed = time % 7;
-      const isUp = seed <= 3;
-
-      if (isUp) {
-        open = mid - vol * 0.3;
-        close = mid + vol * 0.4;
-      } else {
-        open = mid + vol * 0.3;
-        close = mid - vol * 0.4;
-      }
-      // Wicks extend beyond body
-      high = Math.max(open, close) + vol * (0.2 + (seed % 3) * 0.1);
-      low = Math.min(open, close) - vol * (0.2 + ((seed + 1) % 3) * 0.1);
-    }
-
-    return { time, open, high, low, close };
+  // Remove duplicates by timestamp
+  const seen = new Set<number>();
+  candles = candles.filter((c) => {
+    if (seen.has(c.time)) return false;
+    seen.add(c.time);
+    return true;
   });
 
-  if (timeframe === "4h") {
-    candles = aggregateTo4h(candles);
+  // For 1h timeframe with 30-day OHLC (which gives 4h candles),
+  // we use the 4h candles as-is since they have proper OHLC data
+  // For 4h, aggregate if needed
+  if (timeframe === "4h" && candles.length > 0) {
+    // OHLC with 30 days already gives ~4h candles, use as-is
   }
 
   if (candles.length > 0) {

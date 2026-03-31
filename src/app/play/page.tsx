@@ -7,15 +7,11 @@ import TutorialOverlay from "@/components/game/TutorialOverlay";
 import AchievementToast from "@/components/game/AchievementToast";
 import Confetti from "@/components/game/Confetti";
 import KeyboardHelp from "@/components/game/KeyboardHelp";
-// Removed TradingTip — declutters the play screen
 import StreakMilestone from "@/components/game/StreakMilestone";
 import QuickStats from "@/components/portfolio/QuickStats";
 import SessionSummary from "@/components/game/SessionSummary";
-// Removed MotivationalMessage — was eating vertical space
 import PortfolioMilestone from "@/components/game/PortfolioMilestone";
 import MiniRecap from "@/components/game/MiniRecap";
-// Removed DailyGoal — was eating vertical space
-import SessionTimer from "@/components/game/SessionTimer";
 import PriceTicker from "@/components/layout/PriceTicker";
 import { usePortfolioStore } from "@/stores/portfolio-store";
 import { useAchievementsStore } from "@/stores/achievements-store";
@@ -30,7 +26,7 @@ export default function PlayPage() {
   const hydrated = useHydration();
   const { user } = useAuth();
   const portfolio = usePortfolioStore();
-  const { balance, totalPnl, totalTrades, winningTrades, currentStreak, bestStreak, bestTrade, worstTrade, trades, recordTrade } = portfolio;
+  const { balance, totalPnl, totalTrades, winningTrades, currentStreak, trades, recordTrade } = portfolio;
   const { unlocked, addUnlocked } = useAchievementsStore();
   const { chart, direction, leverage } = useGameStore();
   const [flash, setFlash] = useState<"profit" | "loss" | null>(null);
@@ -74,24 +70,19 @@ export default function PlayPage() {
         isDailyChallenge: false,
       };
 
-      // Record locally (persists to localStorage)
       recordTrade(tradeData);
 
-      // Also sync to Supabase if authenticated
       if (user) {
         fetch("/api/trade", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(tradeData),
-        }).catch(() => {
-          // Silently fail — local data is the source of truth
-        });
+        }).catch(() => {});
       }
 
       setFlash(pnl >= 0 ? "profit" : "loss");
       setTimeout(() => setFlash(null), 600);
 
-      // Check achievements after recording the trade
       setTimeout(() => {
         const state = usePortfolioStore.getState();
         const ctx = {
@@ -111,14 +102,12 @@ export default function PlayPage() {
         }
       }, 100);
 
-      // Confetti for big wins
       if (pnl >= 200) {
         setConfettiIntensity(pnl >= 1000 ? "high" : pnl >= 500 ? "medium" : "low");
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
 
-      // Update previous streak ref after a short delay (after store updates)
       setTimeout(() => {
         prevStreakRef.current = usePortfolioStore.getState().currentStreak;
       }, 200);
@@ -128,34 +117,18 @@ export default function PlayPage() {
 
   return (
     <main className="flex h-dvh flex-col pb-14">
-      {/* Tutorial overlay for first-time users */}
+      {/* Overlays — these are absolute/fixed positioned, don't affect layout */}
       {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}
-
-      {/* Achievement toast */}
       <AchievementToast />
-
-      {/* Confetti for big wins */}
       <Confetti active={showConfetti} intensity={confettiIntensity} />
-
-      {/* Streak milestone celebrations */}
       <StreakMilestone streak={currentStreak} previousStreak={prevStreakRef.current} />
-
-      {/* Session summary for returning users */}
       <SessionSummary />
-
-      {/* Portfolio milestone celebrations */}
       <PortfolioMilestone />
-
-      {/* Mini recap every 10 trades */}
       <MiniRecap />
-
-      {/* Keyboard shortcuts help */}
       <KeyboardHelp />
-
-      {/* Quick stats popup */}
       <QuickStats open={quickStatsOpen} onClose={() => setQuickStatsOpen(false)} />
 
-      {/* Portfolio header */}
+      {/* Header — compact portfolio bar */}
       <PortfolioBar
         balance={currentBalance}
         totalPnl={hydrated ? totalPnl : 0}
@@ -165,13 +138,12 @@ export default function PlayPage() {
         onBalanceTap={() => setQuickStatsOpen(true)}
       />
 
-      {/* Price ticker */}
+      {/* Ticker — thin scrolling prices */}
       <PriceTicker />
 
-      {/* Game area — takes all remaining space */}
-      <div className="relative min-h-0 flex-1">
+      {/* Game — takes ALL remaining space */}
+      <div className="min-h-0 flex-1">
         <GameScreen balance={currentBalance} onTrade={handleTrade} />
-        <SessionTimer />
       </div>
     </main>
   );
