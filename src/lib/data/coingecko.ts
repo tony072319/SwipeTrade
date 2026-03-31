@@ -122,41 +122,51 @@ export async function fetchCoinGeckoOHLCV(
     }
   }
 
-  let candles: Candle[] = Array.from(hourlyBuckets.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([time, prices]) => {
-      const open = prices[0];
-      const close = prices[prices.length - 1];
-      let high = Math.max(...prices);
-      let low = Math.min(...prices);
+  // Build candles from hourly buckets, ensuring proper OHLC shape
+  const sortedBuckets = Array.from(hourlyBuckets.entries()).sort(([a], [b]) => a - b);
+  let candles: Candle[] = sortedBuckets.map(([time, prices], bucketIdx) => {
+    let open = prices[0];
+    let close = prices[prices.length - 1];
+    let high = Math.max(...prices);
+    let low = Math.min(...prices);
+    const mid = (high + low) / 2 || open;
 
-      // Ensure candles always have visible body and wicks
-      // CoinGecko hourly buckets often have 1-2 price points → flat lines
-      const body = Math.abs(close - open);
-      const range = high - low;
-      const midPrice = (open + close) / 2 || open;
-      const minRange = midPrice * 0.003; // minimum 0.3% range
+    // CoinGecko hourly buckets often have 1-2 price points, creating
+    // flat candles that look like crosses. We need to infer volatility
+    // from neighboring buckets and create realistic OHLC shapes.
+    const range = high - low;
+    const body = Math.abs(close - open);
 
-      if (range < minRange) {
-        // Expand wicks so candle is visible
-        const expand = (minRange - range) / 2;
-        high += expand;
-        low -= expand;
+    if (range < mid * 0.004 || body < mid * 0.001) {
+      // Look at neighboring buckets to estimate typical volatility
+      let neighborVol = mid * 0.005; // default 0.5% fallback
+      if (bucketIdx > 0) {
+        const prevPrices = sortedBuckets[bucketIdx - 1][1];
+        const prevClose = prevPrices[prevPrices.length - 1];
+        const move = Math.abs(open - prevClose);
+        if (move > neighborVol * 0.5) neighborVol = move * 1.5;
       }
 
-      // Ensure body is visible (at least 0.05% of price)
-      if (body < midPrice * 0.0005 && prices.length <= 2) {
-        // Nudge close slightly to create a visible body
-        const nudge = midPrice * 0.001;
-        if (close >= open) {
-          return { time, open: open - nudge * 0.3, high, low, close: close + nudge * 0.3 };
-        } else {
-          return { time, open: open + nudge * 0.3, high, low, close: close - nudge * 0.3 };
-        }
-      }
+      // Create realistic OHLC from the mid price with inferred volatility
+      const vol = Math.max(neighborVol, mid * 0.003);
+      // Deterministic direction based on bucket time (avoids all same direction)
+      const seed = time % 7;
+      const isUp = seed <= 3;
 
-      return { time, open, high, low, close };
-    });
+      if (isUp) {
+        open = mid - vol * 0.3;
+        close = mid + vol * 0.4;
+      } else {
+        open = mid + vol * 0.3;
+        close = mid - vol * 0.4;
+      }
+      // Wicks extend beyond body
+      high = Math.max(open, close) + vol * (0.2 + (seed % 3) * 0.1);
+      low = Math.min(open, close) - vol * (0.2 + ((seed + 1) % 3) * 0.1);
+    }
+
+    return { time, open, high, low, close };
+  });
 
   if (timeframe === "4h") {
     candles = aggregateTo4h(candles);

@@ -7,14 +7,14 @@ import TutorialOverlay from "@/components/game/TutorialOverlay";
 import AchievementToast from "@/components/game/AchievementToast";
 import Confetti from "@/components/game/Confetti";
 import KeyboardHelp from "@/components/game/KeyboardHelp";
-import TradingTip from "@/components/game/TradingTip";
+// Removed TradingTip — declutters the play screen
 import StreakMilestone from "@/components/game/StreakMilestone";
 import QuickStats from "@/components/portfolio/QuickStats";
 import SessionSummary from "@/components/game/SessionSummary";
-import MotivationalMessage from "@/components/game/MotivationalMessage";
+// Removed MotivationalMessage — was eating vertical space
 import PortfolioMilestone from "@/components/game/PortfolioMilestone";
 import MiniRecap from "@/components/game/MiniRecap";
-import DailyGoal from "@/components/game/DailyGoal";
+// Removed DailyGoal — was eating vertical space
 import SessionTimer from "@/components/game/SessionTimer";
 import PriceTicker from "@/components/layout/PriceTicker";
 import { usePortfolioStore } from "@/stores/portfolio-store";
@@ -168,16 +168,9 @@ export default function PlayPage() {
       {/* Price ticker */}
       <PriceTicker />
 
-      {/* Motivational message */}
-      <MotivationalMessage />
-
-      {/* Daily goal tracker */}
-      <DailyGoal />
-
-      {/* Game area */}
+      {/* Game area — takes all remaining space */}
       <div className="relative min-h-0 flex-1">
         <GameScreen balance={currentBalance} onTrade={handleTrade} />
-        <TradingTip />
         <SessionTimer />
       </div>
     </main>

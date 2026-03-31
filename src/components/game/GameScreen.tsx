@@ -344,7 +344,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
             {/* Timeframe picker below overlay */}
             {phase === "viewing" && (
-              <div className="absolute left-3 top-[3.75rem] z-10">
+              <div className="absolute left-3 top-[3.25rem] z-10">
                 <TimeframePicker
                   value={hydrated ? selectedTimeframe : null}
                   onChange={handleTimeframeChange}
@@ -354,7 +354,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
             )}
 
             <SwipeHandler enabled={phase === "viewing"} onSwipe={handleSwipe}>
-              <div className="h-full px-1 pt-[4.5rem] pb-2">
+              <div className="h-full px-1 pt-[3.75rem] pb-1">
                 <ChartReveal
                   visibleCandles={chart.visibleCandles}
                   hiddenCandles={chart.hiddenCandles}
@@ -401,144 +401,123 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
         )}
       </div>
 
-      {/* Bottom controls */}
-      <div className="border-t border-border bg-surface-secondary/30 px-4 py-3">
+      {/* Bottom controls — compact layout to ensure buttons are always visible */}
+      <div className="shrink-0 border-t border-border bg-surface-secondary/30 px-3 py-2">
         {phase === "viewing" && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            {/* Row 1: Leverage + Bet + Confidence + Speed + Indicators */}
+            <div className="flex items-center gap-2">
               <LeverageSelector
                 value={leverage}
                 onChange={setLeverage}
                 disabled={phase !== "viewing"}
               />
-              <div className="flex items-center gap-2">
-                {/* Speed selector */}
-                <div className="flex items-center gap-1">
-                  {([1, 2, 4] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setRevealSpeed(s)}
-                      className={cn(
-                        "rounded-md px-1.5 py-1 text-[10px] font-bold transition-all",
-                        revealSpeed === s
-                          ? "bg-accent text-white"
-                          : "bg-surface-tertiary text-text-muted",
-                      )}
-                    >
-                      {s}x
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setIndicatorOpen(true)}
-                  className="rounded-lg bg-surface-tertiary px-3 py-2 text-xs font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
-                >
-                  Indicators
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
+              <div className="h-4 w-px bg-border" />
               <BetSizeSelector
                 balance={balance}
                 betFraction={betFraction || 0.1}
                 leverage={leverage}
                 onChange={setBetFraction}
               />
+              <div className="h-4 w-px bg-border" />
               <ConfidenceRating value={confidence} onRate={setConfidence} />
+              <div className="ml-auto flex items-center gap-1">
+                {([1, 2, 4] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setRevealSpeed(s)}
+                    className={cn(
+                      "rounded-md px-1.5 py-0.5 text-[9px] font-bold transition-all",
+                      revealSpeed === s
+                        ? "bg-accent text-white"
+                        : "bg-surface-tertiary text-text-muted",
+                    )}
+                  >
+                    {s}x
+                  </button>
+                ))}
+                <button
+                  onClick={() => setIndicatorOpen(true)}
+                  className="ml-1 rounded-md bg-surface-tertiary px-2 py-1 text-[9px] font-bold text-text-muted transition-colors hover:text-text-secondary border border-border"
+                >
+                  Ind.
+                </button>
+              </div>
             </div>
-            {/* Position info — real trading terminal feel */}
+
+            {/* Row 2: Position summary */}
             {chart && (
-              <div className="flex items-center justify-between rounded-lg bg-surface-tertiary/50 border border-border/50 px-3 py-1.5">
-                <div className="flex items-center gap-3 text-[10px] text-text-muted">
-                  <span className="font-mono">
-                    <span className="text-text-secondary font-bold">{chart.asset.symbol}</span>
-                    {" "}@ ${chart.visibleCandles[chart.visibleCandles.length - 1].close >= 100
-                      ? chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(2)
-                      : chart.visibleCandles[chart.visibleCandles.length - 1].close >= 1
-                        ? chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(2)
-                        : chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(4)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-[10px]">
-                  <span className="text-text-muted">Position:</span>
-                  <span className="font-mono font-bold text-accent">
+              <div className="flex items-center justify-between text-[9px] text-text-muted font-mono px-1">
+                <span>
+                  <span className="text-text-secondary font-bold">{chart.asset.symbol}</span>
+                  {" "}@ ${chart.visibleCandles[chart.visibleCandles.length - 1].close >= 1
+                    ? chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(2)
+                    : chart.visibleCandles[chart.visibleCandles.length - 1].close.toFixed(6)}
+                </span>
+                <span>
+                  Position: <span className="font-bold text-accent">
                     ${Math.round(balance * (betFraction || 0.1) * (CONFIDENCE_MULTIPLIER[confidence] ?? 1)).toLocaleString()}
                   </span>
-                  {(leverage > 1 || confidence !== 2) && (
-                    <span className="font-mono text-text-muted">
-                      {confidence !== 2 && <span className={confidence === 3 ? "text-profit" : "text-loss"}>{CONFIDENCE_MULTIPLIER[confidence]}x </span>}
-                      {leverage > 1 && <span>@ {leverage}x lev</span>}
-                    </span>
-                  )}
-                </div>
+                  {leverage > 1 && <span> ({leverage}x)</span>}
+                </span>
               </div>
             )}
+
+            {/* Row 3: BUY/SELL buttons — always visible */}
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
                 aria-label="Short - bet price goes down"
-                className="group relative flex-1 overflow-hidden rounded-xl border-2 border-loss/30 bg-gradient-to-b from-loss/10 to-loss/5 py-3.5 text-sm font-black text-loss transition-all hover:border-loss/50 hover:from-loss/20 hover:to-loss/10 active:scale-[0.97]"
+                className="flex-1 rounded-xl border-2 border-loss/30 bg-gradient-to-b from-loss/10 to-loss/5 py-3 text-sm font-black text-loss transition-all hover:border-loss/50 hover:from-loss/20 hover:to-loss/10 active:scale-[0.97]"
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+                <span className="flex items-center justify-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
                   SELL SHORT
+                  <span className="text-[8px] font-normal opacity-40 hidden sm:inline">[S]</span>
                 </span>
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-normal opacity-40">[S]</span>
               </button>
               <button
                 onClick={() => handleSwipe("long")}
                 aria-label="Long - bet price goes up"
-                className="group relative flex-1 overflow-hidden rounded-xl border-2 border-profit/30 bg-gradient-to-b from-profit/10 to-profit/5 py-3.5 text-sm font-black text-profit transition-all hover:border-profit/50 hover:from-profit/20 hover:to-profit/10 active:scale-[0.97]"
+                className="flex-1 rounded-xl border-2 border-profit/30 bg-gradient-to-b from-profit/10 to-profit/5 py-3 text-sm font-black text-profit transition-all hover:border-profit/50 hover:from-profit/20 hover:to-profit/10 active:scale-[0.97]"
               >
-                <span className="relative z-10 flex items-center justify-center gap-2">
+                <span className="flex items-center justify-center gap-1.5">
                   BUY LONG
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+                  <span className="text-[8px] font-normal opacity-40 hidden sm:inline">[L]</span>
                 </span>
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-normal opacity-40">[L]</span>
               </button>
             </div>
           </div>
         )}
 
         {(phase === "swiped" || phase === "revealing") && (
-          <div className="flex items-center justify-center py-3">
-            <div className="flex flex-col items-center gap-2 w-full max-w-sm">
-              <div className="flex items-center gap-2 w-full rounded-xl bg-surface-tertiary/50 border border-border/50 px-4 py-2.5">
-                {/* Direction badge */}
-                <span className={cn(
-                  "rounded-md px-2 py-0.5 text-[10px] font-black uppercase",
-                  direction === "long" ? "bg-profit/20 text-profit" : "bg-loss/20 text-loss",
-                )}>
-                  {direction === "long" ? "BUY" : "SELL"}
-                </span>
-                <span className="flex-1 text-xs font-bold text-text-primary tracking-wide">
-                  {chart?.asset.symbol}
-                </span>
-                <span className="text-[10px] font-mono text-text-muted">
-                  {leverage}x
-                </span>
-                {/* Animated progress dots */}
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"
-                      style={{ animationDelay: `${i * 0.2}s` }}
-                    />
-                  ))}
-                </div>
+          <div className="flex items-center justify-center py-2">
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "rounded-md px-2 py-0.5 text-[10px] font-black uppercase",
+                direction === "long" ? "bg-profit/20 text-profit" : "bg-loss/20 text-loss",
+              )}>
+                {direction === "long" ? "BUY" : "SELL"}
+              </span>
+              <span className="text-xs font-bold text-text-primary">{chart?.asset.symbol}</span>
+              <span className="text-[10px] font-mono text-text-muted">{leverage}x</span>
+              <div className="flex gap-0.5 ml-1">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+                ))}
               </div>
-              <p className="text-[10px] text-text-muted">
-                {phase === "swiped" ? "Submitting market order..." : "Order filled — revealing price action..."}
-              </p>
+              <span className="text-[9px] text-text-muted ml-1">
+                {phase === "swiped" ? "Submitting..." : "Revealing..."}
+              </span>
             </div>
           </div>
         )}
 
         {phase === "result" && (
-          <div className="py-3 text-center">
-            <p className="text-xs text-text-muted">
-              Tap &quot;Next Trade&quot; or press Space to continue
+          <div className="py-2 text-center">
+            <p className="text-[10px] text-text-muted">
+              Tap &quot;Next Trade&quot; or press Space
             </p>
           </div>
         )}

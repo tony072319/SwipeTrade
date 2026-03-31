@@ -48,8 +48,13 @@ export function detectPatterns(candles: Candle[]): PatternMatch[] {
     const body = bodySize(c);
     const prevBody = bodySize(prev);
 
-    // Doji — strict: body < 5% of range AND range must be meaningful
-    if (body < range * 0.05 && range > 0.001 * c.close) {
+    // Doji — very strict: true doji with meaningful wicks on both sides
+    if (
+      body < range * 0.03 &&
+      range > c.close * 0.005 &&
+      upperWick(c) > body * 1.5 &&
+      lowerWick(c) > body * 1.5
+    ) {
       patterns.push({ name: "Doji", type: "neutral", index: i, strength: 1 });
     }
 
@@ -201,6 +206,17 @@ export function detectPatterns(candles: Candle[]): PatternMatch[] {
     }
   }
 
-  // Only return last 3 patterns to avoid clutter
-  return Array.from(byIndex.values()).slice(-3);
+  // Deduplicate by pattern name too — only keep the latest of each name
+  const byName = new Map<string, PatternMatch>();
+  for (const p of byIndex.values()) {
+    const existing = byName.get(p.name);
+    if (!existing || p.index > existing.index) {
+      byName.set(p.name, p);
+    }
+  }
+
+  // Only return last 3 unique patterns to avoid clutter
+  return Array.from(byName.values())
+    .sort((a, b) => a.index - b.index)
+    .slice(-3);
 }
