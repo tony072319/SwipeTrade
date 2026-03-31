@@ -145,7 +145,7 @@ export default function AssetPicker({
           ))}
         </div>
 
-        <div className="max-h-72 overflow-y-auto px-4 pb-6">
+        <div className="max-h-[60dvh] overflow-y-auto px-4 pb-6">
           {/* Favorite assets */}
           {showFavorites && (
             <div className="mb-3">

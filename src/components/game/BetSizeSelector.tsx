@@ -11,7 +11,6 @@ interface BetSizeSelectorProps {
 }
 
 const BET_OPTIONS = [
-  { fraction: 0.05, label: "5%" },
   { fraction: 0.1, label: "10%" },
   { fraction: 0.25, label: "25%" },
   { fraction: 0.5, label: "50%" },
@@ -19,12 +18,10 @@ const BET_OPTIONS = [
 
 export default function BetSizeSelector({ balance, betFraction, leverage = 1, onChange }: BetSizeSelectorProps) {
   const betAmount = Math.round(balance * betFraction * 100) / 100;
-  const riskPercent = betFraction * 100;
-  const isHighRisk = riskPercent * leverage >= 50;
+  const isHighRisk = betFraction * leverage >= 0.5;
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[9px] uppercase tracking-wider text-text-muted">Bet</span>
+    <div className="flex flex-col items-center gap-0.5">
       <div className="flex gap-0.5">
         {BET_OPTIONS.map((opt) => (
           <button
@@ -32,7 +29,7 @@ export default function BetSizeSelector({ balance, betFraction, leverage = 1, on
             onClick={() => onChange(opt.fraction)}
             aria-label={`Bet ${opt.label} of balance`}
             className={cn(
-              "rounded-md px-1.5 py-1 text-[10px] font-bold transition-all",
+              "rounded px-1.5 py-0.5 text-[9px] font-bold transition-all",
               betFraction === opt.fraction
                 ? "bg-accent text-white"
                 : "bg-surface-tertiary text-text-muted",
@@ -43,11 +40,10 @@ export default function BetSizeSelector({ balance, betFraction, leverage = 1, on
         ))}
       </div>
       <span className={cn(
-        "text-[10px] font-semibold tabular-nums",
-        isHighRisk ? "text-loss" : "text-text-secondary",
+        "text-[9px] font-bold tabular-nums",
+        isHighRisk ? "text-loss" : "text-text-muted",
       )}>
         {formatCurrency(betAmount)}
-        {isHighRisk && <span className="ml-0.5 text-[8px]">!</span>}
       </span>
     </div>
   );

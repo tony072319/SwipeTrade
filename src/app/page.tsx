@@ -218,7 +218,9 @@ export default function Home() {
         <div className="space-y-4 max-w-sm mx-auto">
           {STEPS.map((step) => (
             <div key={step.num} className="flex gap-3">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-${step.color}/10 text-sm font-black text-${step.color}`}>
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${
+                step.color === "profit" ? "bg-profit/10 text-profit" : "bg-accent/10 text-accent"
+              }`}>
                 {step.num}
               </div>
               <div>

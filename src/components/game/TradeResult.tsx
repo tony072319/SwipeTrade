@@ -101,7 +101,7 @@ export default function TradeResult({
   return (
     <div
       className={cn(
-        "absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-md transition-opacity duration-200",
+        "absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md transition-opacity duration-200",
         visible ? "opacity-100" : "opacity-0",
       )}
     >

@@ -2,7 +2,6 @@
 
 import type { Asset, TimeFrame, Candle } from "@/types/chart";
 import { TIMEFRAME_LABELS } from "@/lib/data/assets";
-import MarketSentiment from "@/components/game/MarketSentiment";
 import PatternLabels from "@/components/game/PatternLabels";
 
 interface ChartOverlayProps {
@@ -61,39 +60,19 @@ export default function ChartOverlay({
           })()}
         </div>
 
-        {/* OHLC of last candle */}
+        {/* OHLC */}
         {lastCandle && (
-          <div className="mt-1 flex items-center gap-2 text-[9px] font-mono tabular-nums">
-            <span className="text-text-muted">O <span className="text-text-secondary">{formatPrice(lastCandle.open)}</span></span>
-            <span className="text-text-muted">H <span className="text-profit">{formatPrice(lastCandle.high)}</span></span>
-            <span className="text-text-muted">L <span className="text-loss">{formatPrice(lastCandle.low)}</span></span>
-            <span className="text-text-muted">C <span className={lastCandle.close >= lastCandle.open ? "text-profit" : "text-loss"}>{formatPrice(lastCandle.close)}</span></span>
-            {lastCandle.volume && lastCandle.volume > 0 && (
-              <span className="text-text-muted">Vol <span className="text-text-secondary">{lastCandle.volume >= 1_000_000 ? `${(lastCandle.volume / 1_000_000).toFixed(1)}M` : lastCandle.volume >= 1_000 ? `${(lastCandle.volume / 1_000).toFixed(1)}K` : lastCandle.volume.toFixed(0)}</span></span>
-            )}
+          <div className="mt-0.5 flex items-center gap-2 text-[8px] font-mono tabular-nums">
+            <span className="text-text-muted">O<span className="text-text-secondary ml-0.5">{formatPrice(lastCandle.open)}</span></span>
+            <span className="text-text-muted">H<span className="text-profit ml-0.5">{formatPrice(lastCandle.high)}</span></span>
+            <span className="text-text-muted">L<span className="text-loss ml-0.5">{formatPrice(lastCandle.low)}</span></span>
+            <span className="text-text-muted">C<span className={`ml-0.5 ${lastCandle.close >= lastCandle.open ? "text-profit" : "text-loss"}`}>{formatPrice(lastCandle.close)}</span></span>
           </div>
         )}
 
+        {/* Patterns — show below the timeframe row */}
         {candles && candles.length > 10 && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <div className="rounded-lg bg-surface-secondary/80 px-2 py-1 backdrop-blur-sm border border-glass-border inline-flex">
-              <MarketSentiment candles={candles} />
-            </div>
-            {/* Relative Volume (RVOL) */}
-            {candles.some((c) => c.volume && c.volume > 0) && (() => {
-              const vols = candles.filter((c) => c.volume && c.volume > 0).map((c) => c.volume!);
-              if (vols.length < 5) return null;
-              const avgVol = vols.slice(0, -1).reduce((s, v) => s + v, 0) / (vols.length - 1);
-              const lastVol = vols[vols.length - 1];
-              const rvol = avgVol > 0 ? lastVol / avgVol : 1;
-              return (
-                <span className={`rounded-lg bg-surface-secondary/80 px-2 py-1 text-[9px] font-bold backdrop-blur-sm border border-glass-border ${
-                  rvol >= 2 ? "text-profit animate-pulse" : rvol >= 1.5 ? "text-accent" : "text-text-muted"
-                }`}>
-                  RVOL {rvol.toFixed(1)}x {rvol >= 2 ? "▲" : ""}
-                </span>
-              );
-            })()}
+          <div className="mt-4">
             <PatternLabels candles={candles} />
           </div>
         )}
@@ -105,26 +84,11 @@ export default function ChartOverlay({
         const low = Math.min(...candles.map((c) => c.low));
         const current = candles[candles.length - 1].close;
 
-        // Simulate bid/ask spread (0.02-0.1% of price)
-        const spreadPct = 0.0002 + Math.random() * 0.0008;
-        const halfSpread = current * spreadPct / 2;
-        const bid = current - halfSpread;
-        const ask = current + halfSpread;
-
         return (
           <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-0.5">
             <span className="rounded-md bg-profit/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-profit border border-profit/10">
               H {formatPrice(high)}
             </span>
-            {/* Bid/Ask spread */}
-            <div className="flex items-center gap-0.5">
-              <span className="rounded-l-md bg-profit/10 px-1 py-0.5 text-[8px] font-mono tabular-nums text-profit border border-profit/10">
-                B {formatPrice(bid)}
-              </span>
-              <span className="rounded-r-md bg-loss/10 px-1 py-0.5 text-[8px] font-mono tabular-nums text-loss border border-loss/10">
-                A {formatPrice(ask)}
-              </span>
-            </div>
             <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold tabular-nums border ${
               current >= candles[0].open ? "bg-profit/10 text-profit border-profit/10" : "bg-loss/10 text-loss border-loss/10"
             }`}>
@@ -132,13 +96,6 @@ export default function ChartOverlay({
             </span>
             <span className="rounded-md bg-loss/10 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-loss border border-loss/10">
               L {formatPrice(low)}
-            </span>
-            {/* Spread indicator */}
-            <span className="mt-0.5 rounded-md bg-surface-secondary/60 px-1.5 py-0.5 text-[7px] font-mono text-text-muted/50 border border-glass-border">
-              Spread {(spreadPct * 100).toFixed(3)}%
-            </span>
-            <span className="rounded-md bg-surface-secondary/60 px-1.5 py-0.5 text-[8px] font-mono text-text-muted/60 border border-glass-border">
-              {candles.length} candles
             </span>
           </div>
         );

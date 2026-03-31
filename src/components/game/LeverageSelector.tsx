@@ -15,28 +15,25 @@ export default function LeverageSelector({
   disabled = false,
 }: LeverageSelectorProps) {
   return (
-    <div className="flex items-center gap-2" role="group" aria-label="Leverage selector">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Lev</span>
-      <div className="flex gap-1">
-        {LEVERAGE_OPTIONS.map((lev) => (
-          <button
-            key={lev}
-            onClick={() => onChange(lev)}
-            disabled={disabled}
-            aria-label={`${lev}x leverage`}
-            aria-pressed={value === lev}
-            className={cn(
-              "rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all",
-              value === lev
-                ? "bg-accent text-white shadow-sm shadow-accent/30"
-                : "bg-surface-tertiary text-text-muted hover:text-text-secondary border border-transparent",
-              disabled && "opacity-50",
-            )}
-          >
-            {lev}x
-          </button>
-        ))}
-      </div>
+    <div className="flex items-center gap-1" role="group" aria-label="Leverage selector">
+      {LEVERAGE_OPTIONS.map((lev) => (
+        <button
+          key={lev}
+          onClick={() => onChange(lev)}
+          disabled={disabled}
+          aria-label={`${lev}x leverage`}
+          aria-pressed={value === lev}
+          className={cn(
+            "rounded px-1.5 py-0.5 text-[10px] font-bold transition-all",
+            value === lev
+              ? "bg-accent text-white"
+              : "bg-surface-tertiary text-text-muted",
+            disabled && "opacity-50",
+          )}
+        >
+          {lev}x
+        </button>
+      ))}
     </div>
   );
 }

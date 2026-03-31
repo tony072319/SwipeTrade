@@ -17,7 +17,7 @@ import { calculateVWAP } from "@/lib/indicators/vwap";
 import type { Direction } from "@/types/trade";
 import type { Asset, TimeFrame, IndicatorData } from "@/types/chart";
 import { TIMEFRAMES_BY_TYPE } from "@/lib/data/assets";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { setSoundEnabled } from "@/lib/sounds";
 import { DIFFICULTY_CONFIG } from "@/stores/settings-store";
 import ChartReveal from "@/components/chart/ChartReveal";
@@ -144,12 +144,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     logConfidence(confidence, tradeResult.isWin);
   }, [chart, direction, leverage, balance, betFraction, confidence, setResult, onTrade]);
 
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
+
   const handleNext = useCallback(() => {
+    if (isLoadingNext) return; // Prevent double-fetch
+    setIsLoadingNext(true);
     reset();
     setConfidence(2);
     setShowingResult(true);
     loadChart();
-  }, [reset, loadChart]);
+    // Allow next click after a brief delay
+    setTimeout(() => setIsLoadingNext(false), 500);
+  }, [reset, loadChart, isLoadingNext]);
 
   const handleAssetSelect = useCallback((asset: Asset | null) => {
     setSelectedAsset(asset);
@@ -233,11 +239,11 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               asset={chart.asset}
               timeframe={chart.timeframe}
               onAssetClick={() => setAssetPickerOpen(true)}
-              candles={phase === "viewing" ? chart.visibleCandles : undefined}
+              candles={chart.visibleCandles}
             />
 
             {phase === "viewing" && (
-              <div className="absolute left-3 top-[2.75rem] z-10">
+              <div className="absolute left-3 top-[2.5rem] z-10 flex items-center gap-2">
                 <TimeframePicker
                   value={hydrated ? selectedTimeframe : null}
                   onChange={handleTimeframeChange}
@@ -272,22 +278,30 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               />
             )}
 
-            {/* When reviewing chart after result, show floating buttons */}
-            {phase === "result" && !showingResult && (
-              <div className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 flex items-center gap-2">
+            {/* When reviewing chart after result, show floating bar */}
+            {phase === "result" && !showingResult && result && (
+              <div className="absolute bottom-4 left-1/2 z-[60] -translate-x-1/2 flex items-center gap-2 rounded-2xl border border-border bg-surface-secondary/95 p-2 shadow-2xl backdrop-blur-md animate-slide-in-bottom">
+                {/* Mini P&L badge */}
+                <div className={cn(
+                  "rounded-lg px-3 py-2 text-center",
+                  result.isWin ? "bg-profit/10" : "bg-loss/10",
+                )}>
+                  <p className={cn("text-sm font-black tabular-nums", result.isWin ? "text-profit" : "text-loss")}>
+                    {result.pnl >= 0 ? "+" : ""}{formatCurrency(result.pnl)}
+                  </p>
+                  <p className={cn("text-[8px] font-bold", result.isWin ? "text-profit/60" : "text-loss/60")}>
+                    {result.pnlPercent >= 0 ? "+" : ""}{(result.pnlPercent * 100).toFixed(1)}%
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowingResult(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-border bg-surface-secondary/95 px-4 py-2.5 text-sm font-bold text-text-primary shadow-2xl backdrop-blur-md transition-all hover:bg-surface-secondary active:scale-[0.98]"
+                  className="flex items-center gap-1.5 rounded-xl border border-border bg-surface-tertiary px-3 py-2.5 text-xs font-bold text-text-primary transition-all hover:bg-surface-secondary active:scale-[0.98]"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12" />
-                    <polyline points="12 19 5 12 12 5" />
-                  </svg>
-                  Result
+                  Details
                 </button>
                 <button
                   onClick={handleNext}
-                  className="rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-2xl transition-all hover:bg-accent/90 active:scale-[0.98]"
+                  className="rounded-xl bg-accent px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
                 >
                   Next Trade
                 </button>
@@ -297,18 +311,18 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
         )}
       </div>
 
-      {/* Bottom controls — minimal height */}
-      <div className="shrink-0 border-t border-border bg-surface-secondary/30 px-3 py-2">
+      {/* Bottom controls — compact and clear */}
+      <div className="shrink-0 border-t border-border bg-surface-secondary/30 px-3 py-1.5">
         {phase === "viewing" && (
           <div className="flex flex-col gap-1.5">
-            {/* Row 1: Leverage + Bet + Conf + Speed + Indicators */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <LeverageSelector value={leverage} onChange={setLeverage} disabled={phase !== "viewing"} />
-              <div className="h-4 w-px bg-border/50" />
-              <BetSizeSelector balance={balance} betFraction={betFraction || 0.1} leverage={leverage} onChange={setBetFraction} />
-              <div className="h-4 w-px bg-border/50" />
-              <ConfidenceRating value={confidence} onRate={setConfidence} />
-              <div className="ml-auto flex items-center gap-1">
+            {/* Row 1: Key settings */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                <LeverageSelector value={leverage} onChange={setLeverage} disabled={phase !== "viewing"} />
+                <div className="h-4 w-px bg-border/30 shrink-0" />
+                <ConfidenceRating value={confidence} onRate={setConfidence} />
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ml-2">
                 {([1, 2, 4] as const).map((s) => (
                   <button key={s} onClick={() => setRevealSpeed(s)}
                     className={cn("rounded px-1.5 py-0.5 text-[9px] font-bold", revealSpeed === s ? "bg-accent text-white" : "bg-surface-tertiary text-text-muted")}
@@ -320,19 +334,22 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               </div>
             </div>
 
-            {/* Row 2: BUY/SELL buttons — THE most important row */}
+            {/* Row 2: BUY/SELL buttons with bet info */}
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
-                className="flex-1 rounded-xl border-2 border-loss/30 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.97]"
+                className="flex-1 rounded-xl border-2 border-loss/30 bg-loss/10 py-2.5 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.97]"
               >
-                ↓ SELL SHORT <span className="text-[8px] font-normal opacity-40">[S]</span>
+                SELL <span className="text-[10px] font-bold opacity-60">SHORT</span>
               </button>
+              <div className="flex flex-col items-center justify-center px-1">
+                <BetSizeSelector balance={balance} betFraction={betFraction || 0.1} leverage={leverage} onChange={setBetFraction} />
+              </div>
               <button
                 onClick={() => handleSwipe("long")}
-                className="flex-1 rounded-xl border-2 border-profit/30 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.97]"
+                className="flex-1 rounded-xl border-2 border-profit/30 bg-profit/10 py-2.5 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.97]"
               >
-                BUY LONG ↑ <span className="text-[8px] font-normal opacity-40">[L]</span>
+                BUY <span className="text-[10px] font-bold opacity-60">LONG</span>
               </button>
             </div>
           </div>
