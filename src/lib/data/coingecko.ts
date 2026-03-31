@@ -130,12 +130,29 @@ export async function fetchCoinGeckoOHLCV(
       let high = Math.max(...prices);
       let low = Math.min(...prices);
 
-      // Synthesize slight variation for single-price-point buckets
-      // so candles don't appear as thin lines
-      if (prices.length <= 2 && high === low) {
-        const noise = open * 0.002; // 0.2% variation
-        high = open + noise;
-        low = open - noise;
+      // Ensure candles always have visible body and wicks
+      // CoinGecko hourly buckets often have 1-2 price points → flat lines
+      const body = Math.abs(close - open);
+      const range = high - low;
+      const midPrice = (open + close) / 2 || open;
+      const minRange = midPrice * 0.003; // minimum 0.3% range
+
+      if (range < minRange) {
+        // Expand wicks so candle is visible
+        const expand = (minRange - range) / 2;
+        high += expand;
+        low -= expand;
+      }
+
+      // Ensure body is visible (at least 0.05% of price)
+      if (body < midPrice * 0.0005 && prices.length <= 2) {
+        // Nudge close slightly to create a visible body
+        const nudge = midPrice * 0.001;
+        if (close >= open) {
+          return { time, open: open - nudge * 0.3, high, low, close: close + nudge * 0.3 };
+        } else {
+          return { time, open: open + nudge * 0.3, high, low, close: close - nudge * 0.3 };
+        }
       }
 
       return { time, open, high, low, close };

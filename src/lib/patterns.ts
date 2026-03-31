@@ -48,8 +48,8 @@ export function detectPatterns(candles: Candle[]): PatternMatch[] {
     const body = bodySize(c);
     const prevBody = bodySize(prev);
 
-    // Doji
-    if (body < range * 0.1) {
+    // Doji — strict: body < 5% of range AND range must be meaningful
+    if (body < range * 0.05 && range > 0.001 * c.close) {
       patterns.push({ name: "Doji", type: "neutral", index: i, strength: 1 });
     }
 

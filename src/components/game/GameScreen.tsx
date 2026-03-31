@@ -30,7 +30,7 @@ import AssetPicker from "@/components/game/AssetPicker";
 import TimeframePicker from "@/components/game/TimeframePicker";
 import IndicatorSelector from "@/components/game/IndicatorSelector";
 import BetSizeSelector from "@/components/game/BetSizeSelector";
-import { ConfidenceRating, logConfidence } from "@/components/game/ConfidenceRating";
+import { ConfidenceRating, logConfidence, CONFIDENCE_MULTIPLIER } from "@/components/game/ConfidenceRating";
 
 interface GameScreenProps {
   balance: number;
@@ -72,6 +72,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [indicatorOpen, setIndicatorOpen] = useState(false);
   const [confidence, setConfidence] = useState(2);
+  const [reviewingChart, setReviewingChart] = useState(false);
 
   // Sync sound setting
   useEffect(() => {
@@ -204,7 +205,8 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     const entryPrice = chart.visibleCandles[chart.visibleCandles.length - 1].close;
     const exitPrice = chart.hiddenCandles[chart.hiddenCandles.length - 1].close;
     const fraction = betFraction || BET_FRACTION;
-    const betAmount = Math.round(balance * fraction * 100) / 100;
+    const confMultiplier = CONFIDENCE_MULTIPLIER[confidence] ?? 1;
+    const betAmount = Math.round(balance * fraction * confMultiplier * 100) / 100;
     const tradeResult = calculateTrade({ direction, leverage, entryPrice, exitPrice, betAmount });
     setResult(tradeResult);
     onTrade(tradeResult.pnl);
@@ -214,6 +216,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
   const handleNext = useCallback(() => {
     reset();
     setConfidence(2);
+    setReviewingChart(false);
     loadChart();
   }, [reset, loadChart]);
 
@@ -370,8 +373,29 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               </div>
             </SwipeHandler>
 
-            {phase === "result" && result && (
-              <TradeResult result={result} balance={balance} onNext={handleNext} />
+            {phase === "result" && result && !reviewingChart && (
+              <TradeResult
+                result={result}
+                balance={balance}
+                onNext={handleNext}
+                onReviewChart={() => setReviewingChart(true)}
+              />
+            )}
+
+            {/* Review chart overlay — back button to return to result */}
+            {phase === "result" && reviewingChart && (
+              <div className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2">
+                <button
+                  onClick={() => setReviewingChart(false)}
+                  className="flex items-center gap-2 rounded-xl border border-border bg-surface-secondary/95 px-5 py-3 text-sm font-bold text-text-primary shadow-2xl backdrop-blur-md transition-all hover:bg-surface-secondary active:scale-[0.98]"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                  Back to Result
+                </button>
+              </div>
             )}
           </>
         )}
@@ -438,61 +462,74 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
                 <div className="flex items-center gap-2 text-[10px]">
                   <span className="text-text-muted">Position:</span>
                   <span className="font-mono font-bold text-accent">
-                    ${Math.round(balance * (betFraction || 0.1)).toLocaleString()}
+                    ${Math.round(balance * (betFraction || 0.1) * (CONFIDENCE_MULTIPLIER[confidence] ?? 1)).toLocaleString()}
                   </span>
-                  {leverage > 1 && (
+                  {(leverage > 1 || confidence !== 2) && (
                     <span className="font-mono text-text-muted">
-                      ({leverage}x = ${Math.round(balance * (betFraction || 0.1) * leverage).toLocaleString()})
+                      {confidence !== 2 && <span className={confidence === 3 ? "text-profit" : "text-loss"}>{CONFIDENCE_MULTIPLIER[confidence]}x </span>}
+                      {leverage > 1 && <span>@ {leverage}x lev</span>}
                     </span>
                   )}
                 </div>
               </div>
             )}
-            {/* Order type indicator */}
-            <div className="flex items-center gap-1.5 text-[9px]">
-              <span className="rounded bg-accent/10 border border-accent/20 px-1.5 py-0.5 font-bold text-accent">MARKET ORDER</span>
-              <span className="text-text-muted">Fill at best available price</span>
-            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleSwipe("short")}
                 aria-label="Short - bet price goes down"
-                className="flex-1 rounded-xl border border-loss/20 bg-loss/10 py-3 text-sm font-black text-loss transition-all hover:bg-loss/20 active:scale-[0.98]"
+                className="group relative flex-1 overflow-hidden rounded-xl border-2 border-loss/30 bg-gradient-to-b from-loss/10 to-loss/5 py-3.5 text-sm font-black text-loss transition-all hover:border-loss/50 hover:from-loss/20 hover:to-loss/10 active:scale-[0.97]"
               >
-                ← SELL SHORT
-                <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[S]</span>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+                  SELL SHORT
+                </span>
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-normal opacity-40">[S]</span>
               </button>
               <button
                 onClick={() => handleSwipe("long")}
                 aria-label="Long - bet price goes up"
-                className="flex-1 rounded-xl border border-profit/20 bg-profit/10 py-3 text-sm font-black text-profit transition-all hover:bg-profit/20 active:scale-[0.98]"
+                className="group relative flex-1 overflow-hidden rounded-xl border-2 border-profit/30 bg-gradient-to-b from-profit/10 to-profit/5 py-3.5 text-sm font-black text-profit transition-all hover:border-profit/50 hover:from-profit/20 hover:to-profit/10 active:scale-[0.97]"
               >
-                BUY LONG →
-                <span className="ml-1 hidden text-[10px] font-normal opacity-50 sm:inline">[L]</span>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  BUY LONG
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+                </span>
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-normal opacity-40">[L]</span>
               </button>
             </div>
           </div>
         )}
 
         {(phase === "swiped" || phase === "revealing") && (
-          <div className="flex items-center justify-center py-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center py-3">
+            <div className="flex flex-col items-center gap-2 w-full max-w-sm">
+              <div className="flex items-center gap-2 w-full rounded-xl bg-surface-tertiary/50 border border-border/50 px-4 py-2.5">
+                {/* Direction badge */}
+                <span className={cn(
+                  "rounded-md px-2 py-0.5 text-[10px] font-black uppercase",
+                  direction === "long" ? "bg-profit/20 text-profit" : "bg-loss/20 text-loss",
+                )}>
+                  {direction === "long" ? "BUY" : "SELL"}
+                </span>
+                <span className="flex-1 text-xs font-bold text-text-primary tracking-wide">
+                  {chart?.asset.symbol}
+                </span>
+                <span className="text-[10px] font-mono text-text-muted">
+                  {leverage}x
+                </span>
+                {/* Animated progress dots */}
                 <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {Array.from({ length: 3 }).map((_, i) => (
                     <div
                       key={i}
-                      className="h-2 w-2 rounded-full bg-accent animate-pulse"
-                      style={{ animationDelay: `${i * 0.15}s` }}
+                      className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse"
+                      style={{ animationDelay: `${i * 0.2}s` }}
                     />
                   ))}
                 </div>
-                <p className="text-sm font-medium text-text-secondary">
-                  {phase === "swiped" ? "Submitting order..." : "Order filled — revealing outcome..."}
-                </p>
               </div>
-              <p className="text-[9px] font-mono text-text-muted">
-                {direction === "long" ? "BUY" : "SELL"} {chart?.asset.symbol} | MARKET ORDER | {leverage}x
+              <p className="text-[10px] text-text-muted">
+                {phase === "swiped" ? "Submitting market order..." : "Order filled — revealing price action..."}
               </p>
             </div>
           </div>

@@ -17,11 +17,18 @@ interface ConfidenceRatingProps {
   value: number;
 }
 
+// Confidence multipliers for bet sizing
+export const CONFIDENCE_MULTIPLIER: Record<number, number> = {
+  1: 0.5,  // Low — half bet
+  2: 1.0,  // Med — normal bet
+  3: 1.5,  // High — 1.5x bet
+};
+
 export function ConfidenceRating({ onRate, value }: ConfidenceRatingProps) {
   const levels = [
-    { value: 1, label: "Low", color: "text-loss" },
-    { value: 2, label: "Med", color: "text-text-secondary" },
-    { value: 3, label: "High", color: "text-profit" },
+    { value: 1, label: "Low", hint: "0.5x bet", color: "text-loss" },
+    { value: 2, label: "Med", hint: "1x bet", color: "text-text-secondary" },
+    { value: 3, label: "High", hint: "1.5x bet", color: "text-profit" },
   ];
 
   return (
@@ -32,12 +39,13 @@ export function ConfidenceRating({ onRate, value }: ConfidenceRatingProps) {
           <button
             key={l.value}
             onClick={() => onRate(l.value)}
-            aria-label={`${l.label} confidence`}
+            aria-label={`${l.label} confidence — ${l.hint}`}
+            title={l.hint}
             className={cn(
-              "rounded-md px-1.5 py-0.5 text-[9px] font-bold transition-all",
+              "rounded-md px-2 py-1 text-[10px] font-bold transition-all",
               value === l.value
-                ? "bg-accent text-white"
-                : "bg-surface-tertiary text-text-muted",
+                ? l.value === 1 ? "bg-loss/80 text-white" : l.value === 3 ? "bg-profit/80 text-white" : "bg-accent text-white"
+                : "bg-surface-tertiary text-text-muted hover:bg-surface-tertiary/80",
             )}
           >
             {l.label}

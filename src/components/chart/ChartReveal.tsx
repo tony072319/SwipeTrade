@@ -63,7 +63,6 @@ export default function ChartReveal({
   const rsiChartRef = useRef<IChartApi | null>(null);
   const macdChartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const revealIndexRef = useRef(0);
   const [revealedCount, setRevealedCount] = useState(0);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
@@ -139,11 +138,25 @@ export default function ChartReveal({
       series.createPriceLine({
         price: entryPrice,
         color: "#fbbf24",
-        lineWidth: 1,
+        lineWidth: 2,
         lineStyle: 2,
         axisLabelVisible: true,
-        title: "Entry",
+        title: "▶ ENTRY",
       });
+    }
+
+    // Add vertical marker at the decision point (last visible candle)
+    if (visibleCandles.length > 0) {
+      const lastVisible = visibleCandles[visibleCandles.length - 1];
+      series.setMarkers([
+        {
+          time: lastVisible.time as Time,
+          position: "aboveBar",
+          color: "#fbbf24",
+          shape: "arrowDown",
+          text: "Decision",
+        },
+      ]);
     }
 
     // Fit content first, then add right offset for hidden candles space
@@ -452,10 +465,6 @@ export default function ChartReveal({
 
     return () => {
       resizeObserver.disconnect();
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
       chart.remove();
       rsiChart?.remove();
       macdChart?.remove();
@@ -477,157 +486,125 @@ export default function ChartReveal({
     onRevealComplete();
   }, [onRevealComplete]);
 
-  // Skip animation — reveal all remaining candles instantly
-  const handleSkip = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
+  // Reveal a single candle + all its indicators
+  const revealCandle = useCallback((idx: number) => {
     const series = seriesRef.current;
     if (!series) return;
 
-    // Add all remaining candles
+    const candle = hiddenCandles[idx];
+    series.update(candleToLW(candle));
+
+    // Update volume
+    if (hiddenIndicatorData?.volume?.[idx] !== null && hiddenIndicatorData?.volume?.[idx] !== undefined) {
+      const isUp = candle.close >= candle.open;
+      volumeSeriesRef.current?.update({
+        time: candle.time as Time,
+        value: hiddenIndicatorData.volume[idx]!,
+        color: isUp ? "#00dc8240" : "#ff475740",
+      } as HistogramData<Time>);
+    }
+
+    // Update overlay indicator series
+    if (hiddenIndicatorData) {
+      const overlays = overlaySeriesRef.current;
+      if (hiddenIndicatorData.vwap?.[idx] !== null && hiddenIndicatorData.vwap?.[idx] !== undefined) {
+        overlays.get("vwap")?.update({ time: candle.time as Time, value: hiddenIndicatorData.vwap[idx]! });
+      }
+      if (hiddenIndicatorData.ema9?.[idx] !== null && hiddenIndicatorData.ema9?.[idx] !== undefined) {
+        overlays.get("ema9")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema9[idx]! });
+      }
+      if (hiddenIndicatorData.ema21?.[idx] !== null && hiddenIndicatorData.ema21?.[idx] !== undefined) {
+        overlays.get("ema21")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema21[idx]! });
+      }
+      if (hiddenIndicatorData.sma50?.[idx] !== null && hiddenIndicatorData.sma50?.[idx] !== undefined) {
+        overlays.get("sma50")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma50[idx]! });
+      }
+      if (hiddenIndicatorData.sma200?.[idx] !== null && hiddenIndicatorData.sma200?.[idx] !== undefined) {
+        overlays.get("sma200")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma200[idx]! });
+      }
+      if (hiddenIndicatorData.bollinger) {
+        const b = hiddenIndicatorData.bollinger;
+        if (b.upper[idx] !== null) overlays.get("bollinger_upper")?.update({ time: candle.time as Time, value: b.upper[idx]! });
+        if (b.lower[idx] !== null) overlays.get("bollinger_lower")?.update({ time: candle.time as Time, value: b.lower[idx]! });
+        if (b.middle[idx] !== null) overlays.get("bollinger_middle")?.update({ time: candle.time as Time, value: b.middle[idx]! });
+      }
+
+      // Update pane indicators
+      if (hiddenIndicatorData.rsi?.[idx] !== null && hiddenIndicatorData.rsi?.[idx] !== undefined) {
+        rsiSeriesRef.current?.update({ time: candle.time as Time, value: hiddenIndicatorData.rsi[idx]! });
+      }
+      if (hiddenIndicatorData.macd) {
+        const m = hiddenIndicatorData.macd;
+        if (m.macd[idx] !== null) macdLineSeriesRef.current?.update({ time: candle.time as Time, value: m.macd[idx]! });
+        if (m.signal[idx] !== null) macdSignalSeriesRef.current?.update({ time: candle.time as Time, value: m.signal[idx]! });
+        if (m.histogram[idx] !== null) {
+          macdHistSeriesRef.current?.update({
+            time: candle.time as Time,
+            value: m.histogram[idx]!,
+            color: m.histogram[idx]! >= 0 ? "#00dc8280" : "#ff475780",
+          } as HistogramData<Time>);
+        }
+      }
+    }
+
+    setCurrentPrice(candle.close);
+  }, [hiddenCandles, hiddenIndicatorData]);
+
+  // Skip animation — reveal all remaining candles instantly
+  const handleSkip = useCallback(() => {
+    const series = seriesRef.current;
+    if (!series) return;
+
     for (let i = revealIndexRef.current; i < hiddenCandles.length; i++) {
-      const candle = hiddenCandles[i];
-      series.update(candleToLW(candle));
-
-      // Update volume
-      if (hiddenIndicatorData?.volume?.[i] !== null && hiddenIndicatorData?.volume?.[i] !== undefined) {
-        const isUp = candle.close >= candle.open;
-        volumeSeriesRef.current?.update({
-          time: candle.time as Time,
-          value: hiddenIndicatorData.volume[i]!,
-          color: isUp ? "#00dc8240" : "#ff475740",
-        } as HistogramData<Time>);
-      }
-
-      // Update overlay indicators
-      if (hiddenIndicatorData) {
-        const overlays = overlaySeriesRef.current;
-        if (hiddenIndicatorData.vwap?.[i] !== null && hiddenIndicatorData.vwap?.[i] !== undefined) {
-          overlays.get("vwap")?.update({ time: candle.time as Time, value: hiddenIndicatorData.vwap[i]! });
-        }
-        if (hiddenIndicatorData.ema9?.[i] !== null && hiddenIndicatorData.ema9?.[i] !== undefined) {
-          overlays.get("ema9")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema9[i]! });
-        }
-        if (hiddenIndicatorData.ema21?.[i] !== null && hiddenIndicatorData.ema21?.[i] !== undefined) {
-          overlays.get("ema21")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema21[i]! });
-        }
-        if (hiddenIndicatorData.sma50?.[i] !== null && hiddenIndicatorData.sma50?.[i] !== undefined) {
-          overlays.get("sma50")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma50[i]! });
-        }
-        if (hiddenIndicatorData.sma200?.[i] !== null && hiddenIndicatorData.sma200?.[i] !== undefined) {
-          overlays.get("sma200")?.update({ time: candle.time as Time, value: hiddenIndicatorData.sma200[i]! });
-        }
-        if (hiddenIndicatorData.bollinger) {
-          const b = hiddenIndicatorData.bollinger;
-          if (b.upper[i] !== null) overlays.get("bollinger_upper")?.update({ time: candle.time as Time, value: b.upper[i]! });
-          if (b.lower[i] !== null) overlays.get("bollinger_lower")?.update({ time: candle.time as Time, value: b.lower[i]! });
-          if (b.middle[i] !== null) overlays.get("bollinger_middle")?.update({ time: candle.time as Time, value: b.middle[i]! });
-        }
-        if (hiddenIndicatorData.rsi?.[i] !== null && hiddenIndicatorData.rsi?.[i] !== undefined) {
-          rsiSeriesRef.current?.update({ time: candle.time as Time, value: hiddenIndicatorData.rsi[i]! });
-        }
-        if (hiddenIndicatorData.macd) {
-          const m = hiddenIndicatorData.macd;
-          if (m.macd[i] !== null) macdLineSeriesRef.current?.update({ time: candle.time as Time, value: m.macd[i]! });
-          if (m.signal[i] !== null) macdSignalSeriesRef.current?.update({ time: candle.time as Time, value: m.signal[i]! });
-          if (m.histogram[i] !== null) {
-            macdHistSeriesRef.current?.update({
-              time: candle.time as Time,
-              value: m.histogram[i]!,
-              color: m.histogram[i]! >= 0 ? "#00dc8280" : "#ff475780",
-            } as HistogramData<Time>);
-          }
-        }
-      }
+      revealCandle(i);
     }
 
     revealIndexRef.current = hiddenCandles.length;
     setRevealedCount(hiddenCandles.length);
     handleRevealComplete();
-  }, [hiddenCandles, hiddenIndicatorData, handleRevealComplete]);
+  }, [hiddenCandles, revealCandle, handleRevealComplete]);
 
-  // Handle reveal animation
+  // Handle reveal animation with requestAnimationFrame for smoother pacing
   useEffect(() => {
     if (!revealing || !seriesRef.current) return;
 
     revealIndexRef.current = 0;
+    const intervalMs = CANDLE_REVEAL_INTERVAL_MS / revealSpeed;
+    let lastTime = 0;
+    let rafId: number;
 
-    intervalRef.current = setInterval(() => {
-      const series = seriesRef.current;
-      if (!series) return;
+    function tick(timestamp: number) {
+      if (!lastTime) lastTime = timestamp;
+      const elapsed = timestamp - lastTime;
 
-      const idx = revealIndexRef.current;
-      if (idx >= hiddenCandles.length) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
+      if (elapsed >= intervalMs) {
+        lastTime = timestamp;
+
+        const idx = revealIndexRef.current;
+        if (idx >= hiddenCandles.length) {
+          handleRevealComplete();
+          return;
         }
-        handleRevealComplete();
-        return;
+
+        revealCandle(idx);
+        revealIndexRef.current++;
+        setRevealedCount(revealIndexRef.current);
+
+        // Auto-scroll chart to keep revealed candles in view
+        chartRef.current?.timeScale().scrollToPosition(-2, false);
+        rsiChartRef.current?.timeScale().scrollToPosition(-2, false);
+        macdChartRef.current?.timeScale().scrollToPosition(-2, false);
       }
 
-      const candle = hiddenCandles[idx];
-      series.update(candleToLW(candle));
+      rafId = requestAnimationFrame(tick);
+    }
 
-      // Update volume
-      if (hiddenIndicatorData?.volume?.[idx] !== null && hiddenIndicatorData?.volume?.[idx] !== undefined) {
-        const isUp = candle.close >= candle.open;
-        volumeSeriesRef.current?.update({
-          time: candle.time as Time,
-          value: hiddenIndicatorData.volume[idx]!,
-          color: isUp ? "#00dc8240" : "#ff475740",
-        } as HistogramData<Time>);
-      }
-
-      // Update overlay indicator series
-      if (hiddenIndicatorData) {
-        const overlays = overlaySeriesRef.current;
-        if (hiddenIndicatorData.ema9?.[idx] !== null && hiddenIndicatorData.ema9?.[idx] !== undefined) {
-          overlays.get("ema9")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema9[idx]! });
-        }
-        if (hiddenIndicatorData.ema21?.[idx] !== null && hiddenIndicatorData.ema21?.[idx] !== undefined) {
-          overlays.get("ema21")?.update({ time: candle.time as Time, value: hiddenIndicatorData.ema21[idx]! });
-        }
-        if (hiddenIndicatorData.bollinger) {
-          const b = hiddenIndicatorData.bollinger;
-          if (b.upper[idx] !== null) overlays.get("bollinger_upper")?.update({ time: candle.time as Time, value: b.upper[idx]! });
-          if (b.lower[idx] !== null) overlays.get("bollinger_lower")?.update({ time: candle.time as Time, value: b.lower[idx]! });
-          if (b.middle[idx] !== null) overlays.get("bollinger_middle")?.update({ time: candle.time as Time, value: b.middle[idx]! });
-        }
-
-        // Update pane indicators
-        if (hiddenIndicatorData.rsi?.[idx] !== null && hiddenIndicatorData.rsi?.[idx] !== undefined) {
-          rsiSeriesRef.current?.update({ time: candle.time as Time, value: hiddenIndicatorData.rsi[idx]! });
-        }
-        if (hiddenIndicatorData.macd) {
-          const m = hiddenIndicatorData.macd;
-          if (m.macd[idx] !== null) macdLineSeriesRef.current?.update({ time: candle.time as Time, value: m.macd[idx]! });
-          if (m.signal[idx] !== null) macdSignalSeriesRef.current?.update({ time: candle.time as Time, value: m.signal[idx]! });
-          if (m.histogram[idx] !== null) {
-            macdHistSeriesRef.current?.update({
-              time: candle.time as Time,
-              value: m.histogram[idx]!,
-              color: m.histogram[idx]! >= 0 ? "#00dc8280" : "#ff475780",
-            } as HistogramData<Time>);
-          }
-        }
-      }
-
-      revealIndexRef.current++;
-      setRevealedCount(revealIndexRef.current);
-      setCurrentPrice(candle.close);
-    }, CANDLE_REVEAL_INTERVAL_MS / revealSpeed);
+    rafId = requestAnimationFrame(tick);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      cancelAnimationFrame(rafId);
     };
-  }, [revealing, hiddenCandles, hiddenIndicatorData, handleRevealComplete, revealSpeed]);
+  }, [revealing, hiddenCandles, hiddenIndicatorData, handleRevealComplete, revealSpeed, revealCandle]);
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -657,20 +634,36 @@ export default function ChartReveal({
       {revealing && (
         <>
           <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
-            {currentPrice !== null && entryPrice && (
-              <span className={`rounded-lg px-2 py-1 text-xs font-bold tabular-nums backdrop-blur-sm ${
-                currentPrice >= entryPrice ? "bg-profit/20 text-profit" : "bg-loss/20 text-loss"
-              }`}>
-                ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            )}
-            <span className="rounded-lg bg-black/50 px-2.5 py-1 text-xs font-medium text-white/70 backdrop-blur-sm">
+            {currentPrice !== null && entryPrice && (() => {
+              const pnlPct = ((currentPrice - entryPrice) / entryPrice) * 100;
+              const isUp = currentPrice >= entryPrice;
+              return (
+                <div className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 backdrop-blur-md border ${
+                  isUp ? "bg-profit/15 border-profit/30" : "bg-loss/15 border-loss/30"
+                }`}>
+                  <span className={`text-xs font-bold tabular-nums ${isUp ? "text-profit" : "text-loss"}`}>
+                    ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className={`text-[10px] font-bold tabular-nums ${isUp ? "text-profit/70" : "text-loss/70"}`}>
+                    {isUp ? "+" : ""}{pnlPct.toFixed(2)}%
+                  </span>
+                </div>
+              );
+            })()}
+            <span className="rounded-lg bg-black/60 px-2.5 py-1.5 text-xs font-medium text-white/70 backdrop-blur-md border border-white/10">
               {revealedCount}/{hiddenCandles.length}
             </span>
           </div>
+          {/* Progress bar */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 h-0.5 bg-black/20">
+            <div
+              className="h-full bg-accent transition-all duration-200 ease-out"
+              style={{ width: `${(revealedCount / hiddenCandles.length) * 100}%` }}
+            />
+          </div>
           <button
             onClick={handleSkip}
-            className="absolute bottom-3 left-3 z-10 rounded-lg bg-black/60 px-3 py-1.5 text-xs font-bold text-white/80 backdrop-blur-sm transition-colors hover:bg-black/80"
+            className="absolute bottom-3 left-3 z-10 rounded-lg bg-black/60 px-3 py-1.5 text-xs font-bold text-white/80 backdrop-blur-md border border-white/10 transition-all hover:bg-black/80 hover:border-white/20"
           >
             Skip →
           </button>

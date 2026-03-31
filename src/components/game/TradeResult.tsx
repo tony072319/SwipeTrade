@@ -11,6 +11,7 @@ interface TradeResultProps {
   result: TradeResultType;
   balance: number;
   onNext: () => void;
+  onReviewChart?: () => void;
 }
 
 function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
@@ -42,6 +43,7 @@ export default function TradeResult({
   result,
   balance,
   onNext,
+  onReviewChart,
 }: TradeResultProps) {
   const [animatedPnl, setAnimatedPnl] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -130,9 +132,10 @@ export default function TradeResult({
       )}
 
       <div className={cn(
-        "mx-4 w-full max-w-sm rounded-2xl border bg-surface-secondary p-6 shadow-2xl",
+        "mx-4 w-full max-w-sm rounded-2xl border-2 bg-surface-secondary p-6 shadow-2xl",
         visible && "animate-scale-in",
-        result.isWin ? "border-profit/20" : "border-loss/20",
+        result.isWin ? "border-profit/30" : "border-loss/30",
+        result.isWin && "shadow-profit/10",
       )}>
         {/* Streak banner */}
         {streakMessage && (
@@ -254,6 +257,17 @@ export default function TradeResult({
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
           </button>
+          {onReviewChart && (
+            <button
+              onClick={onReviewChart}
+              className="rounded-xl border border-border bg-surface-tertiary py-3.5 px-4 text-sm font-bold text-text-secondary transition-all hover:bg-surface-tertiary/80"
+              title="Review chart"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={onNext}
             className="flex-1 rounded-xl bg-accent py-3.5 text-sm font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]"
