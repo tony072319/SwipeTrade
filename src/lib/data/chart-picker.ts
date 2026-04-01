@@ -168,6 +168,7 @@ function buildChartData(
         timeframe,
         visibleCandles: processed.slice(0, visible),
         hiddenCandles: processed.slice(visible, visible + hidden),
+        rawVisibleCandles: window.slice(0, visible),
       };
     }
   }
@@ -181,6 +182,7 @@ function buildChartData(
     timeframe,
     visibleCandles: processed.slice(0, visible),
     hiddenCandles: processed.slice(visible, visible + hidden),
+    rawVisibleCandles: fallbackWindow.slice(0, visible),
   };
 }
 

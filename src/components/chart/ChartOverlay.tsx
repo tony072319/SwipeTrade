@@ -9,6 +9,8 @@ interface ChartOverlayProps {
   timeframe: TimeFrame;
   onAssetClick?: () => void;
   candles?: Candle[];
+  /** Original candles (before body nudging) for accurate pattern detection */
+  rawCandles?: Candle[];
 }
 
 function formatPrice(p: number): string {
@@ -23,6 +25,7 @@ export default function ChartOverlay({
   timeframe,
   onAssetClick,
   candles,
+  rawCandles,
 }: ChartOverlayProps) {
   const lastCandle = candles?.[candles.length - 1];
   const firstCandle = candles?.[0];
@@ -70,10 +73,10 @@ export default function ChartOverlay({
           </div>
         )}
 
-        {/* Patterns — show below the timeframe row */}
-        {candles && candles.length > 10 && (
+        {/* Patterns — use raw (un-nudged) candles for accurate detection */}
+        {(rawCandles || candles) && (rawCandles || candles)!.length > 10 && (
           <div className="mt-4">
-            <PatternLabels candles={candles} />
+            <PatternLabels candles={rawCandles || candles!} />
           </div>
         )}
       </div>

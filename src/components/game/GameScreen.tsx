@@ -132,6 +132,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
 
   const handleRevealComplete = useCallback(() => {
     if (!chart || !direction) return;
+    if (chart.visibleCandles.length === 0 || chart.hiddenCandles.length === 0) return;
     const entryPrice = chart.visibleCandles[chart.visibleCandles.length - 1].close;
     const exitPrice = chart.hiddenCandles[chart.hiddenCandles.length - 1].close;
     const fraction = betFraction || BET_FRACTION;
@@ -240,6 +241,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
               timeframe={chart.timeframe}
               onAssetClick={() => setAssetPickerOpen(true)}
               candles={chart.visibleCandles}
+              rawCandles={chart.rawVisibleCandles}
             />
 
             {phase === "viewing" && (

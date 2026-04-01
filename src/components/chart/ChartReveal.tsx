@@ -631,7 +631,7 @@ export default function ChartReveal({
           <div ref={macdContainerRef} className="w-full" style={{ height: 80 }} />
         </div>
       )}
-      {revealing && (
+      {revealing && hiddenCandles.length > 0 && (
         <>
           <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
             {currentPrice !== null && entryPrice && (() => {

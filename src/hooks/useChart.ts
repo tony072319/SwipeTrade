@@ -20,16 +20,29 @@ function buildUrl(params?: FetchChartParams): string {
   return `/api/charts${query ? `?${query}` : ""}`;
 }
 
+function isValidChart(data: unknown): data is ChartData {
+  if (!data || typeof data !== "object") return false;
+  const d = data as ChartData;
+  return (
+    d.asset != null &&
+    Array.isArray(d.visibleCandles) &&
+    d.visibleCandles.length > 0 &&
+    Array.isArray(d.hiddenCandles) &&
+    d.hiddenCandles.length > 0
+  );
+}
+
 export function useChart() {
   const [chart, setChart] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const prefetchRef = useRef<Promise<ChartData> | null>(null);
+  const prefetchRef = useRef<Promise<ChartData | null> | null>(null);
   const lastParamsRef = useRef<FetchChartParams | undefined>(undefined);
 
   const fetchChart = useCallback(async (params?: FetchChartParams) => {
     setLoading(true);
     setError(null);
+    lastParamsRef.current = params;
 
     try {
       // Check if we have a prefetched chart ready
@@ -38,23 +51,27 @@ export function useChart() {
         prefetchRef.current = null;
         try {
           const data = await prefetched;
-          setChart(data);
-          setLoading(false);
-          return;
+          if (isValidChart(data)) {
+            setChart(data);
+            setLoading(false);
+            return;
+          }
+          // Invalid prefetch data, fall through to normal fetch
         } catch {
-          // Prefetch failed, do normal fetch
+          // Prefetch failed, fall through to normal fetch
         }
       }
 
       const url = buildUrl(params);
-      lastParamsRef.current = params;
-
       const res = await fetch(url);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to fetch chart");
       }
       const data: ChartData = await res.json();
+      if (!isValidChart(data)) {
+        throw new Error("Invalid chart data received");
+      }
       setChart(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -69,7 +86,7 @@ export function useChart() {
     prefetchRef.current = fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error("Prefetch failed");
-        return res.json();
+        return res.json() as Promise<ChartData>;
       })
       .catch(() => {
         prefetchRef.current = null;

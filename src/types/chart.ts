@@ -23,6 +23,8 @@ export interface ChartData {
   timeframe: TimeFrame;
   visibleCandles: Candle[];
   hiddenCandles: Candle[];
+  /** Original candles before body-size nudging — use for pattern detection */
+  rawVisibleCandles?: Candle[];
 }
 
 export interface IndicatorData {
