@@ -34,7 +34,7 @@ import { ConfidenceRating, logConfidence, CONFIDENCE_MULTIPLIER } from "@/compon
 
 interface GameScreenProps {
   balance: number;
-  onTrade: (pnl: number) => void;
+  onTrade: (pnl: number, betAmount: number) => void;
 }
 
 export default function GameScreen({ balance, onTrade }: GameScreenProps) {
@@ -140,7 +140,7 @@ export default function GameScreen({ balance, onTrade }: GameScreenProps) {
     const tradeResult = calculateTrade({ direction, leverage, entryPrice, exitPrice, betAmount });
     setResult(tradeResult);
     setShowingResult(true);
-    onTrade(tradeResult.pnl);
+    onTrade(tradeResult.pnl, betAmount);
     logConfidence(confidence, tradeResult.isWin);
   }, [chart, direction, leverage, balance, betFraction, confidence, setResult, onTrade]);
 

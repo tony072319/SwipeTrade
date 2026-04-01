@@ -67,6 +67,75 @@ function validateWindow(candles: Candle[]): boolean {
   return true;
 }
 
+// Fix candle data at the window level — this is the FINAL pass before rendering.
+// 1. Clamp outlier wicks that distort the price scale
+// 2. Ensure every candle has a visible body relative to the window's price range
+function fixCandleWindow(candles: Candle[]): Candle[] {
+  if (candles.length < 3) return candles;
+
+  // Step 1: Clamp outlier spikes using median-based detection.
+  // Sort all body midpoints to find the "normal" price range, then clamp
+  // any high/low that extends beyond 3x the inter-quartile range.
+  const mids = candles.map((c) => (c.open + c.close) / 2).sort((a, b) => a - b);
+  const q1 = mids[Math.floor(mids.length * 0.25)];
+  const q3 = mids[Math.floor(mids.length * 0.75)];
+  const iqr = q3 - q1;
+  const upperFence = q3 + iqr * 3;
+  const lowerFence = q1 - iqr * 3;
+
+  let result = candles.map((c) => {
+    let { high, low } = c;
+    // Clamp extreme wicks that go beyond the fence
+    if (high > upperFence) high = Math.max(Math.max(c.open, c.close), upperFence);
+    if (low < lowerFence) low = Math.min(Math.min(c.open, c.close), lowerFence);
+    // Ensure high >= max(open,close) and low <= min(open,close)
+    high = Math.max(high, Math.max(c.open, c.close));
+    low = Math.min(low, Math.min(c.open, c.close));
+    return high !== c.high || low !== c.low ? { ...c, high, low } : c;
+  });
+
+  // Step 2: Ensure visible bodies relative to window price range.
+  let windowHigh = -Infinity;
+  let windowLow = Infinity;
+  for (const c of result) {
+    if (c.high > windowHigh) windowHigh = c.high;
+    if (c.low < windowLow) windowLow = c.low;
+  }
+  const windowRange = windowHigh - windowLow;
+  if (windowRange <= 0) return result;
+
+  // Minimum body = 0.5% of the window's price range
+  // On a 500px chart this is ~2.5px — clearly visible as a colored bar
+  const minBody = windowRange * 0.005;
+
+  result = result.map((c) => {
+    const body = Math.abs(c.close - c.open);
+    if (body >= minBody) return c;
+
+    const nudge = (minBody - body) / 2;
+    // Direction: keep original, or random if equal
+    const isGreen = c.close > c.open || (c.close === c.open && Math.random() > 0.5);
+
+    let newOpen: number;
+    let newClose: number;
+    if (isGreen) {
+      newOpen = c.open - nudge;
+      newClose = c.close + nudge;
+    } else {
+      newOpen = c.open + nudge;
+      newClose = c.close - nudge;
+    }
+
+    // Expand high/low if the body now exceeds them
+    let newHigh = Math.max(c.high, Math.max(newOpen, newClose));
+    let newLow = Math.min(c.low, Math.min(newOpen, newClose));
+
+    return { ...c, open: newOpen, close: newClose, high: newHigh, low: newLow };
+  });
+
+  return result;
+}
+
 function buildChartData(
   asset: Asset,
   timeframe: TimeFrame,
@@ -93,25 +162,25 @@ function buildChartData(
     const window = candles.slice(startIndex, startIndex + totalNeeded);
 
     if (validateWindow(window)) {
+      const processed = fixCandleWindow(window);
       return {
         asset,
         timeframe,
-        visibleCandles: window.slice(0, visible),
-        hiddenCandles: window.slice(visible, visible + hidden),
+        visibleCandles: processed.slice(0, visible),
+        hiddenCandles: processed.slice(visible, visible + hidden),
       };
     }
   }
 
   // Fallback: just use first valid-looking window
   const startIndex = Math.floor(Math.random() * (maxStart + 1));
+  const fallbackWindow = candles.slice(startIndex, startIndex + visible + hidden);
+  const processed = fixCandleWindow(fallbackWindow);
   return {
     asset,
     timeframe,
-    visibleCandles: candles.slice(startIndex, startIndex + visible),
-    hiddenCandles: candles.slice(
-      startIndex + visible,
-      startIndex + visible + hidden,
-    ),
+    visibleCandles: processed.slice(0, visible),
+    hiddenCandles: processed.slice(visible, visible + hidden),
   };
 }
 

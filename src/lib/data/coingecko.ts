@@ -99,28 +99,6 @@ export async function fetchCoinGeckoOHLCV(
     return true;
   });
 
-  // Ensure minimum visible body on every candle.
-  // CoinGecko OHLC data often has open ≈ close, producing cross/doji shapes.
-  // Real trading platforms show a small body even for low-movement candles.
-  candles = candles.map((c) => {
-    const body = Math.abs(c.close - c.open);
-    const range = c.high - c.low;
-    const price = (c.high + c.low) / 2;
-    // Minimum body = max(0.15% of price, 8% of candle range)
-    const minBody = Math.max(price * 0.0015, range * 0.08);
-    if (body < minBody && price > 0) {
-      const nudge = (minBody - body) / 2;
-      if (c.close >= c.open) {
-        // Green candle: push close up, open down
-        return { ...c, open: c.open - nudge, close: c.close + nudge };
-      } else {
-        // Red candle: push open up, close down
-        return { ...c, open: c.open + nudge, close: c.close - nudge };
-      }
-    }
-    return c;
-  });
-
   if (candles.length > 0) {
     candleCache.set(cacheKey, { data: candles, timestamp: Date.now() });
   }

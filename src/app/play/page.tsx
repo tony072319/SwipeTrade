@@ -54,7 +54,7 @@ export default function PlayPage() {
   }, []);
 
   const handleTrade = useCallback(
-    (pnl: number) => {
+    (pnl: number, betAmount: number) => {
       if (!chart || !direction) return;
 
       const tradeData = {
@@ -65,7 +65,7 @@ export default function PlayPage() {
         leverage,
         entryPrice: chart.visibleCandles[chart.visibleCandles.length - 1].close,
         exitPrice: chart.hiddenCandles[chart.hiddenCandles.length - 1].close,
-        betAmount: Math.round(currentBalance * (useSettingsStore.getState().betFraction || 0.1) * 100) / 100,
+        betAmount,
         pnl,
         isDailyChallenge: false,
       };
@@ -112,7 +112,7 @@ export default function PlayPage() {
         prevStreakRef.current = usePortfolioStore.getState().currentStreak;
       }, 200);
     },
-    [chart, direction, leverage, currentBalance, recordTrade, user, addUnlocked],
+    [chart, direction, leverage, recordTrade, user, addUnlocked],
   );
 
   return (
